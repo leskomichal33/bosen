@@ -149,7 +149,7 @@ async function vypocitaj(v, env, fotky) {
     return { odhad: false, sprava: 'Na automatický odhad zatiaľ nemáme dosť porovnateľných údajov. Presné ocenenie vám pripravím osobne.', okolie, foto, porovnania: [] };
   }
 
-  const upravy = upravyCeny(v, okolie);
+  const upravy = upravyCeny({ ...v, segment: vyber.segment }, okolie);
   const k = upravy.reduce((a, u) => a * u.k, 1) * KOREKCIA_REALIZACIA;
   const m2 = Math.round(zakladM2 * k / 10) * 10;
   const stred = m2 * v.vymera;
@@ -162,7 +162,7 @@ async function vypocitaj(v, env, fotky) {
 
   const vysledok = {
     odhad: true, od, do: doo, stred: zaokruhli(stred), m2, istota, zdroj,
-    pocet: vyber.pocet, polomer: vyber.polomer, kraj, nbsM2, zakladM2: vyber.zakladM2 || null,
+    pocet: vyber.pocet, polomer: vyber.polomer, kraj, nbsM2, zakladM2: vyber.zakladM2 || null, segment: vyber.segment || null,
     upravy: upravy.filter((u) => u.k !== 1).map((u) => ({ t: u.t, p: Math.round((u.k - 1) * 100) })),
     korekcia: Math.round((KOREKCIA_REALIZACIA - 1) * 100),
     porovnania: vyber.zoznam.slice(0, 6), okolie, foto, stavZFotiek: !!v.stavZFotiek,
@@ -213,7 +213,8 @@ function vyberPorovnatelne(v, riadky, poloha, geo) {
     const lok = (r.locality || '').toLowerCase();
     let d = poloha && g ? vzdialenost(poloha.lat, poloha.lon, g.lat, g.lon) : null;
     if (d == null && poloha && lok && lok === v.obec.toLowerCase()) d = 0.5;   // rovnaká obec / mestská časť
-    kand.push({ ...r, m2, izby, d });
+    const nova = /novostavb|developer|v projekte|projekt[eu]?\b|kolaud\w* (?:20(?:2[4-9]))|nový byt|nova? stavba/i.test(r.title || '');
+    kand.push({ ...r, m2, izby, d, nova });
   }
 
   let polomer = null;
@@ -235,6 +236,15 @@ function vyberPorovnatelne(v, riadky, poloha, geo) {
   }
   if (!vyber.length) return { m2: null, pocet: 0, zoznam: [], polomer: null, rozptyl: null };
 
+  // Novostavby majú výrazne vyššie ponukové ceny – porovnávame staršie so staršími a novostavby s novostavbami
+  let segment = 'zmiešané';
+  if (v.typ === 'byt' || v.typ === 'dom') {
+    const nove = vyber.filter((c) => c.nova);
+    const starsie = vyber.filter((c) => !c.nova);
+    if (v.stav === 'novostavba' && nove.length >= 3) { vyber = nove; segment = 'novostavby'; }
+    else if (v.stav !== 'novostavba' && starsie.length >= 4) { vyber = starsie; segment = 'staršie'; }
+  }
+
   // váhy: vzdialenosť, podobnosť výmery, rovnaký počet izieb
   for (const c of vyber) {
     const wd = c.d != null ? 1 / (1 + c.d / 2) : 0.6;
@@ -253,16 +263,17 @@ function vyberPorovnatelne(v, riadky, poloha, geo) {
   const s = vyber.map((c) => c.m2).sort((a, b) => a - b);
   const rozptyl = s.length >= 4 ? (kvantil(s, 0.75) - kvantil(s, 0.25)) / (2 * m2) : null;
   return {
-    m2, pocet: vyber.length, polomer, rozptyl,
+    m2, pocet: vyber.length, polomer, rozptyl, segment,
     zoznam: vyber.map((c) => ({
       lokalita: c.locality, typ: c.prop_type, vymera: Math.round(c.area_m2), cena: Math.round(c.price),
-      m2: Math.round(c.m2), km: c.d != null ? Math.round(c.d * 10) / 10 : null, portal: c.portal || 'nehnutelnosti.sk', url: c.url,
+      m2: Math.round(c.m2), km: c.d != null ? Math.round(c.d * 10) / 10 : null, portal: c.portal || 'nehnutelnosti.sk', url: c.url, nova: c.nova,
     })),
   };
 }
 
 function upravyCeny(v, okolie) {
-  const u = [{ t: `stav: ${STAV[v.stav].t}${v.stavZFotiek ? ' (podľa fotiek)' : ''}`, k: STAV[v.stav].k }];
+  const kStav = v.stav === 'novostavba' && v.segment === 'novostavby' ? 1 : STAV[v.stav].k;
+  const u = [{ t: `stav: ${STAV[v.stav].t}${v.stavZFotiek ? ' (podľa fotiek)' : ''}`, k: kStav }];
   if (v.typ === 'byt') {
     const p = v.poschodie.toLowerCase();
     const cislo = parseInt(p, 10);
@@ -386,6 +397,7 @@ async function aiText(env, v, r) {
   const fakty = {
     nehnutelnost: popisNehnutelnosti(v), odhad: `${eur(r.od)} – ${eur(r.do)}`, cena_m2: `${r.m2} €/m²`,
     zdroj: r.zdroj, pocet_porovnani: r.pocet, polomer_km: r.polomer, ponukova_cena_porovnani_m2: r.zakladM2,
+    porovnania_su: r.segment === 'staršie' ? 'staršie byty/domy (bez novostavieb)' : r.segment === 'novostavby' ? 'novostavby' : 'zmiešané',
     upravy: r.upravy.map((u) => `${u.t} ${u.p > 0 ? '+' : ''}${u.p} %`), korekcia_na_realizovane_ceny: `${r.korekcia} %`,
     okolie: r.okolie, fotky: r.foto && r.foto.poznamka,
   };
