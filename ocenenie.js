@@ -47,6 +47,7 @@ export async function ocenenieFetch(request, env, ctx, url) {
     if (cesta.startsWith('/sprava/')) return await sprava(cesta.slice(8), url, env);
     if (cesta === '/admin') return await admin(url, env);
     if (cesta === '/api/stav') return json(await stavDat(env));
+    if (cesta === '/api/diag' && (await jeAdmin(url))) return json(await diag(url.searchParams.get('q') || 'Malacky'));
     return new Response('Nenájdené', { status: 404 });
   } catch (e) {
     console.error('Ocenenie chyba', e);
@@ -287,14 +288,53 @@ function upravyCeny(v, okolie) {
 // ---------------------------------------------------------------------------------------------
 // Mapové dáta – OpenStreetMap (Nominatim + Overpass)
 async function geokoduj(q) {
+  return (await nominatim(q).catch(() => null)) || (await photon(q).catch(() => null));
+}
+
+async function nominatim(q) {
   const res = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=1&countrycodes=sk&accept-language=sk&q=${encodeURIComponent(q)}`, {
-    headers: { 'user-agent': UA }, cf: { cacheTtl: 86400 * 30 },
+    headers: { 'user-agent': UA, referer: 'https://bosen.leskomichal33.workers.dev/' }, cf: { cacheTtl: 86400 * 30 },
   });
   if (!res.ok) return null;
   const j = await res.json();
   if (!j[0]) return null;
   const a = j[0].address || {};
-  return { lat: Number(j[0].lat), lon: Number(j[0].lon), kraj: a.state || null, okres: a.county || null };
+  return { lat: Number(j[0].lat), lon: Number(j[0].lon), kraj: normKraj(a.state), okres: a.county || null };
+}
+
+async function photon(q) {
+  const res = await fetch(`https://photon.komoot.io/api/?limit=1&lang=default&q=${encodeURIComponent(q + ', Slovensko')}&bbox=16.8,47.7,22.6,49.7`, {
+    headers: { 'user-agent': UA }, cf: { cacheTtl: 86400 * 30 },
+  });
+  if (!res.ok) return null;
+  const j = await res.json();
+  const f = j.features && j.features[0];
+  if (!f || (f.properties.countrycode && f.properties.countrycode !== 'SK')) return null;
+  const [lon, lat] = f.geometry.coordinates;
+  return { lat, lon, kraj: normKraj(f.properties.state), okres: f.properties.county || null };
+}
+
+// „Bratislavský kraj“, „Bratislava Region“, „Region of Bratislava“… → názov kraja ako v tabuľke NBS
+function normKraj(s) {
+  if (!s) return null;
+  const t = s.toLowerCase();
+  const mapa = [['bratislav', 'Bratislavský kraj'], ['trnav', 'Trnavský kraj'], ['tren', 'Trenčiansky kraj'], ['nitr', 'Nitriansky kraj'],
+    ['žilin', 'Žilinský kraj'], ['zilin', 'Žilinský kraj'], ['bansk', 'Banskobystrický kraj'], ['prešov', 'Prešovský kraj'], ['presov', 'Prešovský kraj'], ['košic', 'Košický kraj'], ['kosic', 'Košický kraj']];
+  const m = mapa.find(([k]) => t.includes(k));
+  return m ? m[1] : s;
+}
+
+async function diag(q) {
+  const out = {};
+  for (const [n, u, o] of [
+    ['nominatim', `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=sk&q=${encodeURIComponent(q)}`, { headers: { 'user-agent': UA, referer: 'https://bosen.leskomichal33.workers.dev/' } }],
+    ['photon', `https://photon.komoot.io/api/?limit=1&q=${encodeURIComponent(q + ', Slovensko')}`, { headers: { 'user-agent': UA } }],
+    ['overpass', 'https://overpass-api.de/api/interpreter', { method: 'POST', body: 'data=' + encodeURIComponent('[out:json];node(48.43,17.01,48.44,17.02)[highway=bus_stop];out 1;'), headers: { 'user-agent': UA, 'content-type': 'application/x-www-form-urlencoded' } }],
+  ]) {
+    try { const r = await fetch(u, o); out[n] = { status: r.status, body: (await r.text()).slice(0, 300) }; } catch (e) { out[n] = { chyba: String(e) }; }
+  }
+  out.geokoduj = await geokoduj(q).catch((e) => String(e));
+  return out;
 }
 
 async function mapoveData(p) {
@@ -340,12 +380,14 @@ async function aiText(env, v, r) {
   };
   const res = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
     messages: [
-      { role: 'system', content: 'Si asistent realitného makléra Michala Leška (BOSEN Group). Píšeš spisovnou slovenčinou, vecne a zrozumiteľne pre majiteľa nehnuteľnosti. ' +
-        'Napíš 3 až 4 krátke vety: z čoho odhad vychádza, čo cenu zvyšuje a čo znižuje. Používaj IBA čísla a fakty z poskytnutých údajov, nič si nevymýšľaj. ' +
-        'Nepíš oslovenie ani podpis. Na konci nepridávaj upozornenie, to je na stránke zvlášť.' },
+      { role: 'system', content: 'Si skúsený realitný maklér Michal Leško (BOSEN Group) a vysvetľuješ majiteľovi orientačný odhad ceny. ' +
+        'Píš gramaticky správnou, prirodzenou spisovnou slovenčinou v 1. osobe (napr. „porovnal som“), činným rodom, bez trpného rodu typu „cena je zvyšovaná“. ' +
+        'Napíš presne 3 krátke vety: 1) z koľkých a akých porovnaní odhad vychádza, 2) čo cenu zvyšuje alebo znižuje (vlastnosti nehnuteľnosti a okolie), 3) čo upresní obhliadka. ' +
+        'Používaj IBA čísla a fakty z poskytnutých údajov, nič si nevymýšľaj, neopakuj celé cenové rozpätie. Bez oslovenia, podpisu a upozornení. ' +
+        'Vzor štýlu: „Porovnal som 8 podobných bytov v okolí do 4 km, ktoré sa dnes ponúkajú za približne 4 800 €/m². Cenu zvyšuje tehlová stavba a balkón, naopak pôvodný stav ju znižuje. Presnú cenu upresním po obhliadke, keď uvidím dispozíciu, výhľad a skutočný stav.“' },
       { role: 'user', content: JSON.stringify(fakty) },
     ],
-    max_tokens: 320, temperature: 0.3,
+    max_tokens: 260, temperature: 0.2,
   });
   const t = typeof res.response === 'string' ? res.response.trim() : '';
   return t || null;
