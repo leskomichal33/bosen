@@ -5,6 +5,7 @@ import page from './index.html';
 import pageEn from './index_en.html';
 import pageDe from './index_de.html';
 import pageUk from './index_uk.html';
+import { ocenenieFetch, ocenenieCron } from './ocenenie.js';
 import imgHero from './img/hero.jpg';
 import imgPortret from './img/portret.jpg';
 import imgPortretMichal from './img/portret-michal.jpg';
@@ -64,6 +65,9 @@ const OBRAZKY = {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // Skúšobná verzia ocenenia nehnuteľností (neprepojená s webom)
+    if (url.pathname === '/ocenenie-test') return Response.redirect(url.origin + '/ocenenie-test/', 301);
+    if (url.pathname.startsWith('/ocenenie-test/')) return ocenenieFetch(request, env, ctx, url);
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       return new Response('Method not allowed', { status: 405 });
     }
@@ -118,7 +122,9 @@ export default {
   },
 
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(obnovPonuku(env));
+    // každých 15 minút: polohy lokalít pre ocenenie; o 4:00 UTC: ponuka z bosen.sk
+    if (event.cron === '*/15 * * * *') ctx.waitUntil(ocenenieCron(env).catch((e) => console.error('Geo cron', e)));
+    else ctx.waitUntil(obnovPonuku(env));
   },
 };
 

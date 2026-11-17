@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Ocenenie nehnuteľnosti – Michal Leško, realitný maklér BOSEN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#efece5;color:#141312;font-family:Manrope,system-ui,sans-serif}
+a{color:inherit}
+.mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase}
+.serif{font-family:Newsreader,Georgia,serif;font-style:italic;font-weight:400;letter-spacing:-.03em}
+.test{background:#141312;color:#d7b56d;text-align:center;padding:10px;font-size:12px}
+.test a{color:#f7f5f0}
+header{max-width:1360px;margin:0 auto;padding:22px 32px;display:flex;align-items:center;gap:14px}
+header img{height:38px}header strong{font-size:15px}header span{display:block;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.12em;color:#5b5751;text-transform:uppercase}
+section{padding:40px 0 100px}.wrap{max-width:1360px;margin:0 auto;padding:0 32px}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px 48px}
+.head .k{font-size:14px;color:#7a5c1f}
+h1{margin:16px 0 0;font-size:clamp(40px,5vw,76px);font-weight:800;letter-spacing:-.055em;line-height:.96}
+.head p{flex:0 1 420px;margin:0;font-size:16px;line-height:1.7;color:#5b5751}
+.grid{margin-top:48px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(520px,100%),1fr));gap:16px;align-items:start}
+.card{padding:40px;display:flex;flex-direction:column;gap:24px;border:1px solid #ddd6c8;background:#f7f5f0}
+.card.dk{background:#141312;color:#f7f5f0;border-color:#141312;position:relative;overflow:hidden}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.top .n{font-size:13px;color:#7a5c1f}.dk .top .n{color:#d7b56d}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:7px 10px;background:#141312;color:#f7f5f0}
+.dk .badge{background:#d7b56d;color:#141312}
+h2{margin:0;font-size:clamp(30px,2.6vw,40px);font-weight:800;letter-spacing:-.045em;line-height:1}
+h2 .serif{color:#7a5c1f}.dk h2 .serif{color:#d7b56d}
+.lead{margin:0;font-size:16px;line-height:1.65;color:#5b5751}.dk .lead{color:#b9b2a6}
+form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.f{display:flex;flex-direction:column;gap:6px}.f.full{grid-column:1/-1}
+label.l,.f>span{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5b5751}
+.dk label.l,.dk .f>span{color:#b9b2a6}
+input[type=text],input[type=number],input[type=tel],select,textarea{height:48px;border:1px solid #c9c1b2;background:#fff;padding:0 14px;font:inherit;font-size:15px;color:#141312;border-radius:0;width:100%}
+textarea{height:84px;padding:12px 14px;resize:vertical}
+.dk input,.dk textarea{background:#1f1e1c;border-color:#3b3833;color:#f7f5f0}
+.seg{display:flex;border:1px solid #c9c1b2;background:#fff}
+.seg label{flex:1;text-align:center;padding:13px 0;font-size:14px;font-weight:700;color:#5b5751;cursor:pointer}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:#141312;color:#f7f5f0}
+.chk{display:flex;flex-wrap:wrap;gap:8px}
+.chk label{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;padding:9px 12px;border:1px solid #c9c1b2;background:#fff;cursor:pointer}
+.sub{font-size:13px;color:#8f887c;line-height:1.5}
+.dk .sub{color:#8f887c}
+.suhlas{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5;color:#5b5751}
+.dk .suhlas{color:#b9b2a6}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:16px 22px;font:inherit;font-size:16px;font-weight:700;background:#141312;color:#f7f5f0;border:0;cursor:pointer;width:100%}
+.dk .btn{background:#d7b56d;color:#141312}
+.btn[disabled]{opacity:.6;cursor:wait}
+.chyba{color:#a3341f;font-weight:700;font-size:14px}.dk .chyba{color:#f0a48f}
+.res{border:1px solid #c9c1b2;padding:26px;background:#fff;display:flex;flex-direction:column;gap:14px}
+.res .lab{font-size:12px;color:#7a5c1f}
+.res .price{font-size:clamp(30px,3vw,40px);font-weight:800;letter-spacing:-.04em}
+.bar{position:relative;height:8px;background:#ece7dc;border-radius:8px;margin:6px 0}
+.bar i{position:absolute;left:25%;right:25%;top:0;bottom:0;background:linear-gradient(90deg,#d7b56d,#7a5c1f);border-radius:8px}
+.bar b{position:absolute;left:50%;top:-5px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:#141312;border:3px solid #fff}
+.row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:#5b5751}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:4px 9px;border-radius:20px;background:#efe6d2;color:#7a5c1f}
+.res p{margin:0;font-size:15px;line-height:1.65;color:#3b3833}
+.res h4{margin:6px 0 0;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#7a5c1f;font-family:'IBM Plex Mono',monospace;font-weight:500}
+.res ul{margin:0;padding-left:18px;font-size:14px;line-height:1.7;color:#3b3833}
+.res table{width:100%;border-collapse:collapse;font-size:13px}
+.res td{padding:7px 4px;border-bottom:1px solid #ece7dc;vertical-align:top}
+.res small{font-size:12.5px;line-height:1.5;color:#8f887c}
+.steps{list-style:none;margin:0;padding:0;border-top:1px solid #3b3833}
+.steps li{display:flex;gap:18px;padding:15px 0;border-bottom:1px solid #3b3833}
+.steps .no{font-family:'IBM Plex Mono',monospace;font-size:13px;color:#d7b56d;padding-top:3px}
+.steps strong{display:block;font-size:17px;margin-bottom:4px}
+.steps span{font-size:14px;line-height:1.55;color:#b9b2a6}
+.ok{background:#1f1e1c;border:1px solid #d7b56d;padding:20px;font-size:15px;line-height:1.6}
+.glow{position:absolute;right:-120px;top:-120px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(215,181,109,.22),transparent 65%);pointer-events:none}
+.cmp{margin-top:16px;border:1px solid #ddd6c8;background:#f7f5f0;overflow-x:auto}
+.cmp table{width:100%;border-collapse:collapse;font-size:15px;min-width:560px}
+.cmp th,.cmp td{padding:15px 22px;text-align:left;border-bottom:1px solid #ddd6c8;vertical-align:top}
+.cmp tr:last-child td{border-bottom:0}
+.cmp th{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#7a5c1f}
+.cmp td:first-child{font-weight:700}.cmp td:nth-child(3),.cmp th:nth-child(3){background:#efe6d2}
+.why{margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.why div{border:1px solid #ddd6c8;background:#f7f5f0;padding:24px}
+.why b{display:block;font-size:17px;margin-bottom:6px}.why span{font-size:14px;line-height:1.6;color:#5b5751}
+.hide{display:none!important}
+@media (max-width:640px){section{padding:24px 0 70px}.wrap,header{padding-left:18px;padding-right:18px}.card{padding:24px}form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="test">Skúšobná verzia – nie je prepojená s webom · <a href="/">späť na web</a></div>
+<header><img src="/img/podpis-tmavy.png" alt=""><div><strong>Michal Leško</strong><span>Realitný maklér · BOSEN Group</span></div></header>
+
+<section><div class="wrap">
+  <div class="head">
+    <div style="flex:1 1 640px;min-width:0">
+      <div class="mono k">Ocenenie nehnuteľnosti</div>
+      <h1>Akú hodnotu má vaša nehnuteľnosť? <span class="serif">Vyberte si, ako to zistíte.</span></h1>
+    </div>
+    <p>Rýchly orientačný odhad hneď online, alebo presné ocenenie, pri ktorom k dátam z AI pridám osobnú obhliadku a skúsenosti maklérskej kancelárie BOSEN.</p>
+  </div>
+
+  <div class="grid">
+    <!-- 01 · AI -->
+    <article class="card" id="ai">
+      <div class="top"><span class="mono n">01 · Automaticky cez AI</span><span class="badge">Online · Zdarma</span></div>
+      <h2>Orientačný odhad <span class="serif">za dve minúty.</span></h2>
+      <p class="lead">Vyplníte údaje a AI ich porovná s podobnými nehnuteľnosťami v inzerátoch vo vašom okolí, so štatistikou NBS a s občianskou vybavenosťou v okolí.</p>
+      <form id="f" novalidate>
+        <div class="f full"><span>Typ nehnuteľnosti</span>
+          <div class="seg"><label><input type="radio" name="typ" value="byt" checked>Byt</label><label><input type="radio" name="typ" value="dom">Dom</label><label><input type="radio" name="typ" value="pozemok">Pozemok</label></div></div>
+        <div class="f"><label class="l" for="obec">Obec / mestská časť</label><input type="text" id="obec" name="obec" placeholder="napr. Malacky, Bratislava-Ružinov" autocomplete="address-level2"></div>
+        <div class="f"><label class="l" for="ulica">Ulica <small style="text-transform:none;font-weight:500">(nepovinné)</small></label><input type="text" id="ulica" name="ulica" placeholder="presnejší odhad okolia" autocomplete="address-line1"></div>
+        <div class="f"><label class="l" for="vymera" id="lv">Úžitková plocha m²</label><input type="number" id="vymera" name="vymera" inputmode="decimal" min="10"></div>
+        <div class="f t-byt"><label class="l" for="izby">Počet izieb</label><select id="izby" name="izby"><option value="">–</option><option value="1">1 / garsónka</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5 a viac</option></select></div>
+        <div class="f t-dom hide"><label class="l" for="pozemokm2">Pozemok m²</label><input type="number" id="pozemokm2" name="pozemok" inputmode="decimal"></div>
+        <div class="f t-nie-pozemok"><label class="l" for="stav">Stav</label><select id="stav" name="stav">
+          <option value="novostavba">Novostavba</option><option value="kompletna">Po kompletnej rekonštrukcii</option><option value="ciastocna" selected>Čiastočná rekonštrukcia / dobrý stav</option>
+          <option value="povodny">Pôvodný stav</option><option value="narekonstrukciu">Na rekonštrukciu</option><option value="neviem">Neviem – posúdi AI z fotiek</option></select></div>
+        <div class="f t-byt"><label class="l" for="poschodie">Poschodie</label><select id="poschodie" name="poschodie"><option value="">–</option><option value="prizemie">Prízemie</option><option value="1">1.</option><option value="2">2.</option><option value="3">3.</option><option value="4">4.</option><option value="5">5. a vyššie</option></select></div>
+        <div class="f t-byt"><label class="l" for="konstrukcia">Konštrukcia</label><select id="konstrukcia" name="konstrukcia"><option value="">–</option><option value="tehla">Tehla</option><option value="panel">Panel</option><option value="zmiesana">Zmiešaná</option></select></div>
+        <div class="f full t-nie-pozemok"><span>Doplnky</span><div class="chk">
+          <label class="t-byt"><input type="checkbox" name="vytah">Výťah</label><label class="t-byt"><input type="checkbox" name="balkon">Balkón / loggia</label><label class="t-byt"><input type="checkbox" name="terasa">Terasa</label>
+          <label class="t-byt"><input type="checkbox" name="pivnica">Pivnica</label><label class="t-byt"><input type="checkbox" name="parkovanie">Parkovanie</label><label><input type="checkbox" name="garaz">Garáž</label></div></div>
+        <div class="f full t-nie-pozemok"><label class="l" for="fotky">Fotky <small style="text-transform:none;font-weight:500">(nepovinné, max. 3 – AI posúdi stav)</small></label><input type="file" id="fotky" accept="image/*" multiple style="font-size:14px"></div>
+        <div class="f"><label class="l" for="meno">Meno</label><input type="text" id="meno" name="meno" autocomplete="name"></div>
+        <div class="f"><label class="l" for="kontakt">Telefón alebo e-mail</label><input type="text" id="kontakt" name="kontakt" placeholder="Pošlem vám výsledok" autocomplete="tel"></div>
+        <label class="suhlas full f" style="flex-direction:row"><input type="checkbox" name="suhlas"> Súhlasím so spracovaním údajov na účel ocenenia a kontaktovania maklérom BOSEN Group.</label>
+        <div class="f full"><button class="btn" type="submit" id="b1">Zistiť orientačnú cenu →</button><span class="chyba" id="e1"></span></div>
+      </form>
+      <div class="res hide" id="vysledok" aria-live="polite"></div>
+    </article>
+
+    <!-- 02 · AI + maklér -->
+    <article class="card dk" id="presne">
+      <div class="glow"></div>
+      <div class="top"><span class="mono n">02 · AI + maklérska kancelária</span><span class="badge">Odporúčam</span></div>
+      <h2>Presné ocenenie <span class="serif">s maklérom BOSEN.</span></h2>
+      <p class="lead">Online kalkulačky vychádzajú z cien v inzerátoch, nie zo skutočných predajov. Cenu ovplyvňuje aj to, čo z inzerátov nevyčítate – stav, dispozícia, výhľad, susedstvo či dopyt v danom momente.</p>
+      <ol class="steps">
+        <li><span class="no">01</span><span><strong>Analýza trhu cez AI</strong><span>Porovnateľné ponuky v okolí, štatistika NBS a vybavenosť lokality.</span></span></li>
+        <li><span class="no">02</span><span><strong>Osobná obhliadka</strong><span>Na mieste posúdim stav, dispozíciu, výhľad aj okolie.</span></span></li>
+        <li><span class="no">03</span><span><strong>Kataster a reálne predaje</strong><span>List vlastníctva, ťarchy a porovnanie s nehnuteľnosťami, ktoré sa naozaj predali.</span></span></li>
+        <li><span class="no">04</span><span><strong>Písomné ocenenie a stratégia</strong><span>Odporúčaná cena, čas predaja a plán, ako ju dosiahnuť.</span></span></li>
+      </ol>
+      <p class="sub">Údaje o nehnuteľnosti vyplňte vo formulári 01 – použijem ich ako podklad. Tu doplňte, čo potrebujem k obhliadke:</p>
+      <form id="g" novalidate>
+        <div class="f full"><label class="l" for="kataster">Číslo LV alebo parcely <small style="text-transform:none;font-weight:500">(nepovinné)</small></label><input type="text" id="kataster" name="kataster"></div>
+        <div class="f full"><label class="l" for="termin">Kedy vám vyhovuje obhliadka?</label><input type="text" id="termin" name="termin" placeholder="napr. cez týždeň po 16:00"></div>
+        <div class="f full"><label class="l" for="poznamka">Poznámka</label><textarea id="poznamka" name="poznamka"></textarea></div>
+        <div class="f full"><button class="btn" type="submit" id="b2">Objednať presné ocenenie →</button><span class="chyba" id="e2"></span></div>
+      </form>
+      <div class="ok hide" id="ok2"></div>
+    </article>
+  </div>
+
+  <div class="cmp"><table>
+    <tr><th></th><th>01 · Automaticky cez AI</th><th>02 · AI + maklér BOSEN</th></tr>
+    <tr><td>Rýchlosť</td><td>Okamžite, online</td><td>Po obhliadke, spravidla do 48 hodín</td></tr>
+    <tr><td>Výsledok</td><td>Orientačné cenové rozpätie</td><td>Konkrétna odporúčaná cena a stratégia predaja</td></tr>
+    <tr><td>Podklady</td><td>Inzeráty v okolí, NBS, mapové dáta, AI posúdenie fotiek</td><td>To isté + obhliadka, kataster a reálne predaje BOSEN</td></tr>
+    <tr><td>Obhliadka</td><td>Nie</td><td>Áno, osobne</td></tr>
+    <tr><td>Cena</td><td>Zdarma</td><td>Zdarma a nezáväzne</td></tr>
+  </table></div>
+
+  <div class="why">
+    <div><b>Realizované, nie inzerované ceny</b><span>Bežné kalkulačky počítajú len z cien v inzerátoch. Odhad koriguje ponukové ceny na realizované a presné ocenenie stojí na skutočných predajoch.</span></div>
+    <div><b>Rýchlejšie a lacnejšie ako znalec</b><span>Znalecký posudok pre banku stojí orientačne 150 – 250 € za byt a 250 – 450 € za dom. Ocenenie na predaj od makléra je zdarma.</span></div>
+    <div><b>Celé Slovensko, celý trh</b><span>Porovnávame inzeráty z viacerých portálov, nielen z jedného, a dopĺňame ich štatistikou NBS.</span></div>
+  </div>
+</div></section>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const f = $('#f'), g = $('#g');
+const eur = (x) => Math.round(x).toLocaleString('sk-SK').replace(/ |,/g, ' ') + ' €';
+const m = (x) => x == null ? '–' : x >= 1000 ? (x / 1000).toFixed(1).replace('.', ',') + ' km' : x + ' m';
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function prepniTyp() {
+  const t = f.typ.value;
+  document.querySelectorAll('.t-byt').forEach((e) => e.classList.toggle('hide', t !== 'byt'));
+  document.querySelectorAll('.t-dom').forEach((e) => e.classList.toggle('hide', t !== 'dom'));
+  document.querySelectorAll('.t-nie-pozemok').forEach((e) => e.classList.toggle('hide', t === 'pozemok'));
+  $('#lv').textContent = t === 'pozemok' ? 'Výmera pozemku m²' : 'Úžitková plocha m²';
+}
+f.addEventListener('change', (e) => { if (e.target.name === 'typ') prepniTyp(); });
+prepniTyp();
+
+async function zmensiFotky() {
+  const subory = [...($('#fotky').files || [])].slice(0, 3);
+  return Promise.all(subory.map((s) => new Promise((ok) => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 640 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(img.src);
+      ok(c.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = () => ok(null);
+    img.src = URL.createObjectURL(s);
+  }))).then((x) => x.filter(Boolean));
+}
+
+function udaje() {
+  const d = Object.fromEntries(new FormData(f));
+  for (const k of ['vytah', 'balkon', 'terasa', 'pivnica', 'parkovanie', 'garaz', 'suhlas']) d[k] = !!f.elements[k].checked;
+  return d;
+}
+
+f.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const b = $('#b1'); $('#e1').textContent = ''; b.disabled = true; b.textContent = 'Počítam odhad…';
+  try {
+    const d = udaje(); d.fotky = await zmensiFotky();
+    const r = await fetch('api/odhad', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(d) }).then((x) => x.json());
+    if (r.chyba) { $('#e1').textContent = r.chyba; return; }
+    ukaz(r);
+  } catch (err) { $('#e1').textContent = 'Odhad sa nepodaril. Skúste to znova.'; }
+  finally { b.disabled = false; b.textContent = 'Zistiť orientačnú cenu →'; }
+});
+
+function ukaz(r) {
+  const v = $('#vysledok'); v.classList.remove('hide');
+  if (!r.odhad) { v.innerHTML = `<span class="mono lab">Výsledok</span><p>${esc(r.sprava)}</p><a class="btn" href="#presne">Objednať presné ocenenie →</a>`; return; }
+  const pozicia = r.do > r.od ? Math.round((r.stred - r.od) / (r.do - r.od) * 50 + 25) : 50;
+  const okolie = r.okolie ? `<h4>Okolie</h4><ul>
+      <li>Obchody do 1 km: ${r.okolie.obchody}</li><li>Najbližšia zastávka: ${m(r.okolie.zastavka)}</li>
+      <li>Škola: ${m(r.okolie.skola)} · škôlka: ${m(r.okolie.skolka)}</li><li>Park: ${m(r.okolie.park)}</li></ul>` : '';
+  const upr = (r.upravy || []).length ? `<h4>Čo cenu ovplyvnilo</h4><ul>${r.upravy.map((u) => `<li>${esc(u.t)}: ${u.p > 0 ? '+' : ''}${u.p} %</li>`).join('')}<li>korekcia z ponukových na realizované ceny: ${r.korekcia} %</li></ul>` : '';
+  const foto = r.foto && r.foto.stavText ? `<h4>AI posúdenie fotiek</h4><p>${esc(r.foto.stavText)}${r.foto.poznamka ? ' – ' + esc(r.foto.poznamka) : ''}</p>` : '';
+  const por = (r.porovnania || []).length ? `<h4>Porovnateľné ponuky</h4><table>${r.porovnania.map((c) => `<tr><td>${esc(c.lokalita)}${c.km != null ? ' · ' + c.km + ' km' : ''}</td><td>${c.vymera} m²</td><td>${eur(c.cena)}</td><td><b>${c.m2} €/m²</b></td><td><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.portal)} ↗</a></td></tr>`).join('')}</table>` : '';
+  v.innerHTML = `
+    <span class="mono lab">Orientačná cena</span>
+    <span class="price">${eur(r.od)} – ${eur(r.do)}</span>
+    <div class="bar"><i></i><b style="left:${pozicia}%"></b></div>
+    <div class="row"><span>≈ ${r.m2.toLocaleString('sk-SK').replace(/ /g, ' ')} €/m²</span><span>${r.pocet ? `${r.pocet} porovnaní${r.polomer ? ' do ' + r.polomer + ' km' : ''}` : ''}</span><span class="pill">Istota: ${esc(r.istota)}</span></div>
+    ${r.text ? `<p>${esc(r.text)}</p>` : ''}
+    ${r.nbsM2 ? `<div class="row"><span>NBS – ${esc(r.kraj)}: ${r.nbsM2.toLocaleString('sk-SK').replace(/ /g, ' ')} €/m² (priemer kraja)</span></div>` : ''}
+    ${upr}${foto}${okolie}${por}
+    <small>Orientačný odhad z ponukových cien a verejných dát, nie znalecký posudok. Presnú cenu určíme po obhliadke – zdarma a nezáväzne.</small>
+    <a class="btn" href="#presne">Chcem presné ocenenie →</a>`;
+  v.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+g.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const b = $('#b2'); $('#e2').textContent = ''; b.disabled = true; b.textContent = 'Odosielam…';
+  try {
+    const d = { ...udaje(), ...Object.fromEntries(new FormData(g)) }; d.fotky = await zmensiFotky();
+    const r = await fetch('api/presne', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(d) }).then((x) => x.json());
+    if (r.chyba) { $('#e2').textContent = r.chyba + (/obec|výmer|typ/i.test(r.chyba) ? ' (formulár 01)' : ''); return; }
+    g.classList.add('hide');
+    $('#ok2').classList.remove('hide');
+    $('#ok2').innerHTML = '<b>Ďakujem, žiadosť som prijal.</b><br>Ozvem sa vám najneskôr nasledujúci pracovný deň a dohodneme si obhliadku. Michal Leško, +421 944 040 684';
+  } catch (err) { $('#e2').textContent = 'Odoslanie sa nepodarilo. Zavolajte mi na +421 944 040 684.'; }
+  finally { b.disabled = false; b.textContent = 'Objednať presné ocenenie →'; }
+});
+</script>
+</body>
+</html>
