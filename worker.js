@@ -2,6 +2,7 @@
 // Raz denne (cron) sa načíta profil makléra, ponuky sa uložia do KV a stránka ich zobrazí.
 // Keď sa ponuku nepodarí načítať, zostane posledná známa ponuka (alebo ponuka priamo v index.html).
 import page from './index.html';
+import pageEn from './index_en.html';
 import imgHero from './img/hero.jpg';
 import imgPortret from './img/portret.jpg';
 import imgPortretMichal from './img/portret-michal.jpg';
@@ -66,8 +67,13 @@ export default {
         headers: { 'content-type': url.pathname.endsWith('.png') ? 'image/png' : 'image/jpeg', 'cache-control': 'public, max-age=604800' },
       });
     }
-    if (url.pathname !== '/' && url.pathname !== '/index.html') {
-      return new Response('Stránka sa nenašla', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
+    // Jazykové verzie: slovenská na „/“, anglická na „/en/“
+    if (url.pathname === '/en') {
+      return Response.redirect(url.origin + '/en/', 301);
+    }
+    const lang = url.pathname === '/en/' || url.pathname === '/en/index.html' ? 'en' : 'sk';
+    if (lang === 'sk' && url.pathname !== '/' && url.pathname !== '/index.html') {
+      return new Response('Stránka sa nenašla / Page not found', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
     }
 
     let data = null;
@@ -86,15 +92,15 @@ export default {
     }
 
     const headers = { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=300' };
-    const response = new Response(page, { headers });
+    const response = new Response(lang === 'en' ? pageEn : page, { headers });
     if (!data || !data.items || !data.items.length) return response;
 
     // Dve samostatné ponuky: pilier Predaj (svetlé karty) a pilier Prenájom (tmavé karty)
     const predaj = data.items.filter((i) => i.typ === 'predaj');
     const prenajom = data.items.filter((i) => i.typ === 'prenajom');
     const obsah = (list, tmave) => list.length
-      ? '\n' + list.map((p, i) => karta(p, i, tmave)).join('\n') + '\n'
-      : prazdna(tmave);
+      ? '\n' + list.map((p, i) => karta(p, i, tmave, lang)).join('\n') + '\n'
+      : prazdna(tmave, lang);
 
     return new HTMLRewriter()
       .on('div[data-ponuka="predaj"]', { element(el) { el.setInnerContent(obsah(predaj, false), { html: true }); } })
@@ -193,14 +199,17 @@ function parsujKarty(sekcia) {
 }
 
 // Karta nehnuteľnosti v dizajne webu: svetlá (pilier Predaj) alebo tmavá (pilier Prenájom)
-function karta(p, i, tmave) {
+function karta(p, i, tmave, lang = 'sk') {
+  const en = lang === 'en';
   const s = tmave
-    ? { bg: '#1f1e1c', line: '#3b3833', muted: '#b9b2a6', price: '#d7b56d', badgeBg: '#d7b56d', badgeFg: '#141312', badge: 'Prenájom', link: '' }
-    : { bg: '#f7f5f0', line: '#ddd6c8', muted: '#5b5751', price: '#7a5c1f', badgeBg: '#141312', badgeFg: '#f7f5f0', badge: 'V predaji', link: ' color: #141312;' };
+    ? { bg: '#1f1e1c', line: '#3b3833', muted: '#b9b2a6', price: '#d7b56d', badgeBg: '#d7b56d', badgeFg: '#141312', badge: en ? 'For rent' : 'Prenájom', link: '' }
+    : { bg: '#f7f5f0', line: '#ddd6c8', muted: '#5b5751', price: '#7a5c1f', badgeBg: '#141312', badgeFg: '#f7f5f0', badge: en ? 'For sale' : 'V predaji', link: ' color: #141312;' };
   const fakty = p.features
     .filter((f) => /^[⌂▱▧]/.test(f))
     .map((f) => f.replace(/^[⌂▱▧]\s*/, '').replace(/^(.+)\s+pozemok$/, 'pozemok $1'))
+    .map((f) => (en ? prelozFakt(f) : f))
     .join(' · ');
+  const cena = en ? prelozCenu(p.cena) : p.cena;
   const no = String(i + 1).padStart(2, '0');
   const img = p.img
     ? `<img src="${esc(p.img)}" alt="${esc(p.nazov)}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block">`
@@ -210,15 +219,32 @@ function karta(p, i, tmave) {
     `<span style="position: absolute; left: 14px; top: 14px; background: ${s.badgeBg}; color: ${s.badgeFg}; padding: 7px 10px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase">${s.badge}</span>` +
     `<span style="position: absolute; right: 14px; bottom: 12px; color: #ffffff; font-family: 'IBM Plex Mono', monospace; font-size: 13px; text-shadow: 0 1px 6px rgba(0,0,0,0.6)">${no}</span></div>` +
     `<div style="padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 10px; flex: 1">` +
-    `<div style="display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: ${s.muted}"><span>${esc(p.adresa)}</span><strong style="color: ${s.price}; font-size: 15px; white-space: nowrap">${esc(p.cena)}</strong></div>` +
+    `<div style="display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: ${s.muted}"><span>${esc(p.adresa)}</span><strong style="color: ${s.price}; font-size: 15px; white-space: nowrap">${esc(cena)}</strong></div>` +
     `<h4 style="margin: 0; font-size: 21px; line-height: 1.2; letter-spacing: -0.03em; font-weight: 700">${esc(p.nazov)}</h4>` +
     `<div style="margin-top: auto; padding-top: 14px; border-top: 1px solid ${s.line}; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; color: ${s.muted}"><span>${esc(fakty)}</span>` +
-    `<a href="${esc(p.odkaz)}" target="_blank" rel="noopener" style="font-weight: 700; font-size: 15px;${s.link}">Detail ↗</a></div></div></article>`;
+    `<a href="${esc(p.odkaz)}" target="_blank" rel="noopener" style="font-weight: 700; font-size: 15px;${s.link}">${en ? 'Details' : 'Detail'} ↗</a></div></div></article>`;
 }
 
-function prazdna(tmave) {
-  return `<p style="margin: 0; padding: 28px; border: 1px dashed ${tmave ? '#3b3833' : '#c9c1b2'}; font-size: 16px; color: ${tmave ? '#b9b2a6' : '#5b5751'}">` +
-    `Momentálne tu nemám žiadnu ponuku. Zavolajte mi na <a href="tel:+421944040684">+421 944 040 684</a>.</p>`;
+function prazdna(tmave, lang = 'sk') {
+  const text = lang === 'en'
+    ? 'There are no listings here at the moment. Call me on <a href="tel:+421944040684">+421 944 040 684</a>.'
+    : 'Momentálne tu nemám žiadnu ponuku. Zavolajte mi na <a href="tel:+421944040684">+421 944 040 684</a>.';
+  return `<p style="margin: 0; padding: 28px; border: 1px dashed ${tmave ? '#3b3833' : '#c9c1b2'}; font-size: 16px; color: ${tmave ? '#b9b2a6' : '#5b5751'}">${text}</p>`;
+}
+
+// Anglická verzia: preklad údajov z bosen.sk (názvy a adresy inzerátov zostávajú v originále)
+function prelozFakt(f) {
+  return f
+    .replace(/^(\d+(?:,5)?) (?:izby|izieb)$/, (m, n) => `${n.replace(',', '.')} rooms`)
+    .replace(/^(\d+(?:,5)?) izba$/, (m, n) => `${n.replace(',', '.')} room`)
+    .replace(/^pozemok (.+)$/, (m, v) => `plot ${v.replace(/(\d) (\d{3})/g, '$1,$2')}`)
+    .replace(/^(\d+),(\d+) m²$/, '$1.$2 m²');
+}
+
+function prelozCenu(c) {
+  const mes = /\/mes\.?$/.test(c);
+  const num = c.replace(/€.*$/, '').trim().replace(/\s/g, '').replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+  return num ? `€${num}${mes ? '/month' : ''}` : c;
 }
 
 function upravNazov(s) {
