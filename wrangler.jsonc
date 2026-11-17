@@ -1,0 +1,13 @@
+{
+  // Web Michala Leška – Cloudflare Worker „bosen“
+  "name": "bosen",
+  "main": "worker.js",
+  "compatibility_date": "2025-09-01",
+  // index.html sa načíta ako text a Worker do neho doplní aktuálnu ponuku z bosen.sk
+  "rules": [{ "type": "Text", "globs": ["**/*.html"], "fallthrough": true }],
+  // Uložená ponuka z bosen.sk (obnovuje sa raz denne)
+  "kv_namespaces": [{ "binding": "PONUKA", "id": "37102f2c3a6c4a22bfd5cd14f31ec815" }],
+  // Každý deň o 4:00 UTC (5:00 v zime / 6:00 v lete na Slovensku)
+  "triggers": { "crons": ["0 4 * * *"] },
+  "observability": { "enabled": true }
+}
