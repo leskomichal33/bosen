@@ -389,20 +389,25 @@ async function aiText(env, v, r) {
     upravy: r.upravy.map((u) => `${u.t} ${u.p > 0 ? '+' : ''}${u.p} %`), korekcia_na_realizovane_ceny: `${r.korekcia} %`,
     okolie: r.okolie, fotky: r.foto && r.foto.poznamka,
   };
-  const res = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
-    messages: [
+  const spravy = [
       { role: 'system', content: 'Si skúsený realitný maklér Michal Leško (BOSEN Group) a vysvetľuješ majiteľovi orientačný odhad ceny. ' +
         'Píš gramaticky správnou, prirodzenou spisovnou slovenčinou v 1. osobe (napr. „porovnal som“), činným rodom, bez trpného rodu typu „cena je zvyšovaná“. ' +
         'Napíš presne 3 krátke vety: 1) z koľkých a akých porovnaní odhad vychádza, 2) čo cenu zvyšuje alebo znižuje (vlastnosti nehnuteľnosti a okolie), 3) čo upresní obhliadka. ' +
         'Používaj IBA čísla a fakty z poskytnutých údajov, nič si nevymýšľaj, neopakuj celé cenové rozpätie a nespomínaj korekciu na realizované ceny. Bez oslovenia, podpisu a upozornení. ' +
         'Pozor na pády a zhodu (napr. „kompletná rekonštrukcia“, „po kompletnej rekonštrukcii“). ' +
-        'Vzor štýlu: „Porovnal som 8 podobných bytov v okolí do 4 km, ktoré sa dnes ponúkajú za približne 4 800 €/m². Cenu zvyšuje tehlová stavba a balkón, naopak pôvodný stav ju znižuje. Presnú cenu upresním po obhliadke, keď uvidím dispozíciu, výhľad a skutočný stav.“' },
+        'Vzor štruktúry (hranaté zátvorky nahraď údajmi, vlastnosti ber IBA zo zoznamu „upravy“ a „okolie“): „Porovnal som [počet] podobných [bytov/domov/pozemkov] v okolí do [km] km, ktoré sa dnes ponúkajú za približne [cena] €/m². Cenu zvyšuje [kladné úpravy] a znižuje ju [záporné úpravy]. Presnú cenu upresním po obhliadke, keď uvidím [čo je dôležité pre tento typ].“ ' +
+        'Ak niektorá skupina úprav chýba, danú časť vety vynechaj.' },
       { role: 'user', content: JSON.stringify(fakty) },
-    ],
-    max_tokens: 260, temperature: 0.2,
-  });
-  const t = typeof res.response === 'string' ? res.response.trim() : '';
-  return t || null;
+  ];
+  // Gemma lepšie zvláda slovenčinu; Llama ako záloha
+  for (const model of ['@cf/google/gemma-3-12b-it', '@cf/meta/llama-3.3-70b-instruct-fp8-fast']) {
+    try {
+      const res = await env.AI.run(model, { messages: spravy, max_tokens: 260, temperature: 0.2 });
+      const t = typeof res.response === 'string' ? res.response.trim().replace(/^["„]|["“]$/g, '') : '';
+      if (t) return t;
+    } catch (e) { console.error('AI model', model, e); }
+  }
+  return null;
 }
 
 async function posudFotky(env, fotky) {
