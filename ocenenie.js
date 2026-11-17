@@ -288,7 +288,11 @@ function upravyCeny(v, okolie) {
 // ---------------------------------------------------------------------------------------------
 // Mapové dáta – OpenStreetMap (Nominatim + Overpass)
 async function geokoduj(q) {
-  return (await nominatim(q).catch(() => null)) || (await photon(q).catch(() => null));
+  const p = await photon(q).catch(() => null);
+  if (p && p.kraj) return p;
+  const n = await nominatim(q).catch(() => null);
+  if (n && !n.kraj && p) n.kraj = p.kraj;
+  return n || p;
 }
 
 async function nominatim(q) {
@@ -329,6 +333,8 @@ async function diag(q) {
   for (const [n, u, o] of [
     ['nominatim', `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=sk&q=${encodeURIComponent(q)}`, { headers: { 'user-agent': UA, referer: 'https://bosen.leskomichal33.workers.dev/' } }],
     ['photon', `https://photon.komoot.io/api/?limit=1&q=${encodeURIComponent(q + ', Slovensko')}`, { headers: { 'user-agent': UA } }],
+    ['overpass_kumi', 'https://overpass.kumi.systems/api/interpreter', { method: 'POST', body: 'data=' + encodeURIComponent('[out:json];node(48.43,17.01,48.44,17.02)[highway=bus_stop];out 1;'), headers: { 'user-agent': UA, 'content-type': 'application/x-www-form-urlencoded' } }],
+    ['overpass_coffee', 'https://overpass.private.coffee/api/interpreter', { method: 'POST', body: 'data=' + encodeURIComponent('[out:json];node(48.43,17.01,48.44,17.02)[highway=bus_stop];out 1;'), headers: { 'user-agent': UA, 'content-type': 'application/x-www-form-urlencoded' } }],
     ['overpass', 'https://overpass-api.de/api/interpreter', { method: 'POST', body: 'data=' + encodeURIComponent('[out:json];node(48.43,17.01,48.44,17.02)[highway=bus_stop];out 1;'), headers: { 'user-agent': UA, 'content-type': 'application/x-www-form-urlencoded' } }],
   ]) {
     try { const r = await fetch(u, o); out[n] = { status: r.status, body: (await r.text()).slice(0, 300) }; } catch (e) { out[n] = { chyba: String(e) }; }
@@ -345,15 +351,20 @@ async function mapoveData(p) {
     nwr(around:1500,${p.lat},${p.lon})[amenity~"school|kindergarten"];
     nwr(around:1000,${p.lat},${p.lon})[leisure=park];
   );out center 400;`;
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 9000);
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
-    method: 'POST', body: 'data=' + encodeURIComponent(q), signal: ctrl.signal,
-    headers: { 'user-agent': UA, 'content-type': 'application/x-www-form-urlencoded' },
-  });
-  clearTimeout(t);
-  if (!res.ok) return null;
-  const { elements = [] } = await res.json();
+  let data = null;
+  for (const server of ['https://overpass.kumi.systems/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://overpass-api.de/api/interpreter']) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 7000);
+    try {
+      const res = await fetch(server, {
+        method: 'POST', body: 'data=' + encodeURIComponent(q), signal: ctrl.signal,
+        headers: { 'user-agent': UA, 'content-type': 'application/x-www-form-urlencoded' },
+      });
+      if (res.ok) { data = await res.json(); break; }
+    } catch (e) { /* ďalší server */ } finally { clearTimeout(t); }
+  }
+  if (!data) return null;
+  const { elements = [] } = data;
   const najblizsie = (f) => {
     const d = elements.filter(f).map((e) => vzdialenost(p.lat, p.lon, e.lat ?? e.center?.lat, e.lon ?? e.center?.lon) * 1000);
     return d.length ? Math.round(Math.min(...d) / 10) * 10 : null;
