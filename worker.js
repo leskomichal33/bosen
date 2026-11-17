@@ -30,8 +30,8 @@ import img_krok_9_jpg from './img/krok-9.jpg';
 const PROFIL = 'https://www.bosen.sk/makler/119-michal-lesko';
 const BOSEN = 'https://www.bosen.sk';
 const KV_KLUC = 'ponuka';
-// Verzia uložených dát – 2 = názvy inzerátov majú aj preklad do EN a DE
-const VERZIA_DAT = 2;
+// Verzia uložených dát – 3 = názvy inzerátov majú aj preklad do EN a DE
+const VERZIA_DAT = 3;
 const STRANKY = { sk: page, en: pageEn, de: pageDe };
 
 // Obrázky webu (fotky a certifikát), servírované priamo z Workera
@@ -280,7 +280,8 @@ async function prelozNazvy(env, items) {
   let stare = {};
   try {
     const predtym = await env.PONUKA.get(KV_KLUC, 'json');
-    for (const it of (predtym && predtym.items) || []) {
+    const platne = predtym && predtym.verzia === VERZIA_DAT ? predtym.items : [];
+    for (const it of platne || []) {
       if (it.preklad && it.preklad.en && it.preklad.de) stare[it.nazov] = it.preklad;
     }
   } catch (e) { /* bez cache */ }
@@ -301,7 +302,10 @@ async function prelozNazov(env, nazov) {
     messages: [
       { role: 'system', content: 'You translate Slovak real-estate listing titles for a realtor website. ' +
         'Return ONLY a JSON object {"en": "...", "de": "..."} with a natural, concise English and German title. ' +
-        'Keep street, town, district and building names in their original Slovak form. Keep all numbers and units (m², €). ' +
+        'Translate all ordinary words (e.g. "čarovné miesto" -> "magical place" / "zauberhafter Ort"). ' +
+        'Keep only proper names of streets, towns, districts, regions, parks and buildings in Slovak, but always in their basic nominative form ' +
+        '(e.g. "pri Zámockom parku" -> "near Zámocký park" / "am Zámocký park", "na Záhorí" -> "in Záhorie", "v Senci" -> "in Senec"). ' +
+        'Keep all numbers and units (m², €); write thousands with a separator (1,246 m² in English, 1.246 m² in German). ' +
         '"izb"/"izbový"/"izieb" means rooms (e.g. "5 izb dom" -> "5-room house" / "5-Zimmer-Haus"). ' +
         'Do not add information that is not in the title. No quotes around the whole title, no explanations.' },
       { role: 'user', content: nazov },
