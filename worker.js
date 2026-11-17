@@ -4,6 +4,7 @@
 import page from './index.html';
 import pageEn from './index_en.html';
 import pageDe from './index_de.html';
+import pageUk from './index_uk.html';
 import imgHero from './img/hero.jpg';
 import imgPortret from './img/portret.jpg';
 import imgPortretMichal from './img/portret-michal.jpg';
@@ -30,9 +31,9 @@ import img_krok_9_jpg from './img/krok-9.jpg';
 const PROFIL = 'https://www.bosen.sk/makler/119-michal-lesko';
 const BOSEN = 'https://www.bosen.sk';
 const KV_KLUC = 'ponuka';
-// Verzia uložených dát – 3 = názvy inzerátov majú aj preklad do EN a DE
-const VERZIA_DAT = 3;
-const STRANKY = { sk: page, en: pageEn, de: pageDe };
+// Verzia uložených dát – 4 = názvy inzerátov majú preklad do EN, DE a UK
+const VERZIA_DAT = 4;
+const STRANKY = { sk: page, en: pageEn, de: pageDe, uk: pageUk };
 
 // Obrázky webu (fotky a certifikát), servírované priamo z Workera
 const OBRAZKY = {
@@ -71,11 +72,13 @@ export default {
         headers: { 'content-type': url.pathname.endsWith('.png') ? 'image/png' : 'image/jpeg', 'cache-control': 'public, max-age=604800' },
       });
     }
-    // Jazykové verzie: slovenská na „/“, anglická na „/en/“, nemecká na „/de/“
-    if (url.pathname === '/en' || url.pathname === '/de') {
+    // Jazykové verzie: slovenská na „/“, anglická „/en/“, nemecká „/de/“, ukrajinská „/ua/“
+    if (['/en', '/de', '/ua'].includes(url.pathname)) {
       return Response.redirect(url.origin + url.pathname + '/', 301);
     }
-    const lang = /^\/en\/(index\.html)?$/.test(url.pathname) ? 'en' : /^\/de\/(index\.html)?$/.test(url.pathname) ? 'de' : 'sk';
+    const CESTY = { en: 'en', de: 'de', ua: 'uk' };
+    const m = url.pathname.match(/^\/(en|de|ua)\/(index\.html)?$/);
+    const lang = m ? CESTY[m[1]] : 'sk';
     if (lang === 'sk' && url.pathname !== '/' && url.pathname !== '/index.html') {
       return new Response('Stránka sa nenašla / Page not found', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
     }
@@ -244,6 +247,7 @@ const TEXTY = {
   sk: { predaj: 'V predaji', prenajom: 'Prenájom', detail: 'Detail', prazdna: 'Momentálne tu nemám žiadnu ponuku. Zavolajte mi na' },
   en: { predaj: 'For sale', prenajom: 'For rent', detail: 'Details', prazdna: 'There are no listings here at the moment. Call me on' },
   de: { predaj: 'Zu verkaufen', prenajom: 'Zu vermieten', detail: 'Details', prazdna: 'Derzeit gibt es hier keine Angebote. Rufen Sie mich an:' },
+  uk: { predaj: 'У продажу', prenajom: 'Оренда', detail: 'Детальніше', prazdna: 'Наразі тут немає пропозицій. Зателефонуйте мені:' },
 };
 
 // Údaje z bosen.sk („2 izby“, „pozemok 1 246 m²“, „59,84 m²“) v jazyku stránky
@@ -254,6 +258,14 @@ function prelozFakt(f, lang) {
       .replace(/^(\d+(?:,5)?) izba$/, (m, n) => `${n.replace(',', '.')} room`)
       .replace(/^pozemok (.+)$/, (m, v) => `plot ${v.replace(/(\d) (\d{3})/g, '$1,$2')}`)
       .replace(/^(\d+),(\d+) m²$/, '$1.$2 m²');
+  }
+  if (lang === 'uk') {
+    return f
+      .replace(/^(\d+(?:,5)?) izba$/, '$1 кімната')
+      .replace(/^([234](?:,5)?) izby$/, '$1 кімнати')
+      .replace(/^(\d+(?:,5)?) (?:izby|izieb)$/, '$1 кімнат')
+      .replace(/^pozemok (.+)$/, 'ділянка $1')
+      .replace(/ m²$/, ' м²');
   }
   if (lang === 'de') {
     return f
@@ -266,6 +278,7 @@ function prelozFakt(f, lang) {
 // Cena „429 000 €“ / „650 €/mes.“ v jazyku stránky
 function prelozCenu(c, lang) {
   if (lang === 'sk') return c;
+  if (lang === 'uk') return c.replace(/\/mes\.?$/, '/міс.');
   const mes = /\/mes\.?$/.test(c);
   const cislo = c.replace(/€.*$/, '').trim().replace(/\s/g, '');
   if (!/^\d+$/.test(cislo)) return c;
@@ -282,7 +295,7 @@ async function prelozNazvy(env, items) {
     const predtym = await env.PONUKA.get(KV_KLUC, 'json');
     const platne = predtym && predtym.verzia === VERZIA_DAT ? predtym.items : [];
     for (const it of platne || []) {
-      if (it.preklad && it.preklad.en && it.preklad.de) stare[it.nazov] = it.preklad;
+      if (it.preklad && it.preklad.en && it.preklad.de && it.preklad.uk) stare[it.nazov] = it.preklad;
     }
   } catch (e) { /* bez cache */ }
   for (const it of items) {
@@ -301,16 +314,17 @@ async function prelozNazov(env, nazov) {
   const res = await env.AI.run(AI_MODEL, {
     messages: [
       { role: 'system', content: 'You translate Slovak real-estate listing titles for a realtor website. ' +
-        'Return ONLY a JSON object {"en": "...", "de": "..."} with a natural, concise English and German title. ' +
+        'Return ONLY a JSON object {"en": "...", "de": "...", "uk": "..."} with a natural, concise English, German and Ukrainian title. ' +
         'Translate all ordinary words (e.g. "čarovné miesto" -> "magical place" / "zauberhafter Ort"). ' +
         'Keep only proper names of streets, towns, districts, regions, parks and buildings in Slovak, but always in their basic nominative form ' +
-        '(e.g. "pri Zámockom parku" -> "near Zámocký park" / "am Zámocký park", "na Záhorí" -> "in Záhorie", "v Senci" -> "in Senec"). ' +
-        'Keep all numbers and units (m², €); write thousands with a separator (1,246 m² in English, 1.246 m² in German). ' +
-        '"izb"/"izbový"/"izieb" means rooms (e.g. "5 izb dom" -> "5-room house" / "5-Zimmer-Haus"). ' +
+        '(e.g. "pri Zámockom parku" -> "near Zámocký park" / "am Zámocký park", "na Záhorí" -> "in Záhorie", "v Senci" -> "in Senec"); ' +
+        'in Ukrainian keep those proper names in Latin script too (e.g. "біля Zámocký park", "у Senec"). ' +
+        'Keep all numbers and units (m², €); write thousands with a separator (1,246 m² in English, 1.246 m² in German, 1 246 м² in Ukrainian). ' +
+        '"izb"/"izbový"/"izieb" means rooms (e.g. "5 izb dom" -> "5-room house" / "5-Zimmer-Haus" / "5-кімнатний будинок"). ' +
         'Do not add information that is not in the title. No quotes around the whole title, no explanations.' },
       { role: 'user', content: nazov },
     ],
-    max_tokens: 200,
+    max_tokens: 300,
     temperature: 0.2,
   });
   const out = typeof res.response === 'string' ? res.response : JSON.stringify(res.response || '');
@@ -318,8 +332,8 @@ async function prelozNazov(env, nazov) {
   if (!m) throw new Error('AI nevrátila JSON: ' + out.slice(0, 120));
   const j = JSON.parse(m[0]);
   const cisty = (s) => String(s || '').trim().replace(/^["„“]+|["“”]+$/g, '');
-  if (!cisty(j.en) || !cisty(j.de)) throw new Error('Neúplný preklad');
-  return { en: cisty(j.en), de: cisty(j.de) };
+  if (!cisty(j.en) || !cisty(j.de) || !cisty(j.uk)) throw new Error('Neúplný preklad');
+  return { en: cisty(j.en), de: cisty(j.de), uk: cisty(j.uk) };
 }
 
 function upravNazov(s) {
