@@ -10,6 +10,8 @@
     { "type": "Data", "globs": ["**/*.jpg", "**/*.png"], "fallthrough": true }
   ],
   // Uložená ponuka z bosen.sk (obnovuje sa raz denne)
+  // Workers AI – automatický preklad názvov nových inzerátov do angličtiny a nemčiny
+  "ai": { "binding": "AI" },
   "kv_namespaces": [{ "binding": "PONUKA", "id": "37102f2c3a6c4a22bfd5cd14f31ec815" }],
   // Každý deň o 4:00 UTC (5:00 v zime / 6:00 v lete na Slovensku)
   "triggers": { "crons": ["0 4 * * *"] },

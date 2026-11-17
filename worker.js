@@ -3,6 +3,7 @@
 // Keď sa ponuku nepodarí načítať, zostane posledná známa ponuka (alebo ponuka priamo v index.html).
 import page from './index.html';
 import pageEn from './index_en.html';
+import pageDe from './index_de.html';
 import imgHero from './img/hero.jpg';
 import imgPortret from './img/portret.jpg';
 import imgPortretMichal from './img/portret-michal.jpg';
@@ -29,6 +30,9 @@ import img_krok_9_jpg from './img/krok-9.jpg';
 const PROFIL = 'https://www.bosen.sk/makler/119-michal-lesko';
 const BOSEN = 'https://www.bosen.sk';
 const KV_KLUC = 'ponuka';
+// Verzia uložených dát – 2 = názvy inzerátov majú aj preklad do EN a DE
+const VERZIA_DAT = 2;
+const STRANKY = { sk: page, en: pageEn, de: pageDe };
 
 // Obrázky webu (fotky a certifikát), servírované priamo z Workera
 const OBRAZKY = {
@@ -67,11 +71,11 @@ export default {
         headers: { 'content-type': url.pathname.endsWith('.png') ? 'image/png' : 'image/jpeg', 'cache-control': 'public, max-age=604800' },
       });
     }
-    // Jazykové verzie: slovenská na „/“, anglická na „/en/“
-    if (url.pathname === '/en') {
-      return Response.redirect(url.origin + '/en/', 301);
+    // Jazykové verzie: slovenská na „/“, anglická na „/en/“, nemecká na „/de/“
+    if (url.pathname === '/en' || url.pathname === '/de') {
+      return Response.redirect(url.origin + url.pathname + '/', 301);
     }
-    const lang = url.pathname === '/en/' || url.pathname === '/en/index.html' ? 'en' : 'sk';
+    const lang = /^\/en\/(index\.html)?$/.test(url.pathname) ? 'en' : /^\/de\/(index\.html)?$/.test(url.pathname) ? 'de' : 'sk';
     if (lang === 'sk' && url.pathname !== '/' && url.pathname !== '/index.html') {
       return new Response('Stránka sa nenašla / Page not found', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
     }
@@ -92,7 +96,9 @@ export default {
     }
 
     const headers = { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=300' };
-    const response = new Response(lang === 'en' ? pageEn : page, { headers });
+    const response = new Response(STRANKY[lang], { headers });
+    // Staršie uložené dáta bez prekladov: obnov ich na pozadí (preloží názvy pre EN a DE)
+    if (data && data.verzia !== VERZIA_DAT && ctx) ctx.waitUntil(obnovPonuku(env).catch((e) => console.error('Obnova zlyhala', e)));
     if (!data || !data.items || !data.items.length) return response;
 
     // Dve samostatné ponuky: pilier Predaj (svetlé karty) a pilier Prenájom (tmavé karty)
@@ -136,7 +142,8 @@ async function obnovPonuku(env) {
   }
   // Ochrana: ak sa nenačítala ani jedna ponuka (napr. bosen.sk zmenil stránku), staré dáta neprepisuj.
   if (!items.length) throw new Error('Na profile sa nenašla žiadna ponuka');
-  const data = { aktualizovane: new Date().toISOString(), items };
+  await prelozNazvy(env, items);
+  const data = { aktualizovane: new Date().toISOString(), verzia: VERZIA_DAT, items };
   await env.PONUKA.put(KV_KLUC, JSON.stringify(data));
   console.log(`Ponuka aktualizovaná: ${items.length} nehnuteľností`);
   return data;
@@ -200,19 +207,20 @@ function parsujKarty(sekcia) {
 
 // Karta nehnuteľnosti v dizajne webu: svetlá (pilier Predaj) alebo tmavá (pilier Prenájom)
 function karta(p, i, tmave, lang = 'sk') {
-  const en = lang === 'en';
+  const t = TEXTY[lang] || TEXTY.sk;
+  const nazov = (lang !== 'sk' && p.preklad && p.preklad[lang]) || p.nazov;
   const s = tmave
-    ? { bg: '#1f1e1c', line: '#3b3833', muted: '#b9b2a6', price: '#d7b56d', badgeBg: '#d7b56d', badgeFg: '#141312', badge: en ? 'For rent' : 'Prenájom', link: '' }
-    : { bg: '#f7f5f0', line: '#ddd6c8', muted: '#5b5751', price: '#7a5c1f', badgeBg: '#141312', badgeFg: '#f7f5f0', badge: en ? 'For sale' : 'V predaji', link: ' color: #141312;' };
+    ? { bg: '#1f1e1c', line: '#3b3833', muted: '#b9b2a6', price: '#d7b56d', badgeBg: '#d7b56d', badgeFg: '#141312', badge: t.prenajom, link: '' }
+    : { bg: '#f7f5f0', line: '#ddd6c8', muted: '#5b5751', price: '#7a5c1f', badgeBg: '#141312', badgeFg: '#f7f5f0', badge: t.predaj, link: ' color: #141312;' };
   const fakty = p.features
     .filter((f) => /^[⌂▱▧]/.test(f))
     .map((f) => f.replace(/^[⌂▱▧]\s*/, '').replace(/^(.+)\s+pozemok$/, 'pozemok $1'))
-    .map((f) => (en ? prelozFakt(f) : f))
+    .map((f) => prelozFakt(f, lang))
     .join(' · ');
-  const cena = en ? prelozCenu(p.cena) : p.cena;
+  const cena = prelozCenu(p.cena, lang);
   const no = String(i + 1).padStart(2, '0');
   const img = p.img
-    ? `<img src="${esc(p.img)}" alt="${esc(p.nazov)}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block">`
+    ? `<img src="${esc(p.img)}" alt="${esc(nazov)}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block">`
     : '';
   return `<article style="background: ${s.bg}; border: 1px solid ${s.line}; display: flex; flex-direction: column">` +
     `<div style="position: relative; height: 236px; overflow: hidden">${img}` +
@@ -220,31 +228,94 @@ function karta(p, i, tmave, lang = 'sk') {
     `<span style="position: absolute; right: 14px; bottom: 12px; color: #ffffff; font-family: 'IBM Plex Mono', monospace; font-size: 13px; text-shadow: 0 1px 6px rgba(0,0,0,0.6)">${no}</span></div>` +
     `<div style="padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 10px; flex: 1">` +
     `<div style="display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: ${s.muted}"><span>${esc(p.adresa)}</span><strong style="color: ${s.price}; font-size: 15px; white-space: nowrap">${esc(cena)}</strong></div>` +
-    `<h4 style="margin: 0; font-size: 21px; line-height: 1.2; letter-spacing: -0.03em; font-weight: 700">${esc(p.nazov)}</h4>` +
+    `<h4 style="margin: 0; font-size: 21px; line-height: 1.2; letter-spacing: -0.03em; font-weight: 700">${esc(nazov)}</h4>` +
     `<div style="margin-top: auto; padding-top: 14px; border-top: 1px solid ${s.line}; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; color: ${s.muted}"><span>${esc(fakty)}</span>` +
-    `<a href="${esc(p.odkaz)}" target="_blank" rel="noopener" style="font-weight: 700; font-size: 15px;${s.link}">${en ? 'Details' : 'Detail'} ↗</a></div></div></article>`;
+    `<a href="${esc(p.odkaz)}" target="_blank" rel="noopener" style="font-weight: 700; font-size: 15px;${s.link}">${t.detail} ↗</a></div></div></article>`;
 }
 
 function prazdna(tmave, lang = 'sk') {
-  const text = lang === 'en'
-    ? 'There are no listings here at the moment. Call me on <a href="tel:+421944040684">+421 944 040 684</a>.'
-    : 'Momentálne tu nemám žiadnu ponuku. Zavolajte mi na <a href="tel:+421944040684">+421 944 040 684</a>.';
-  return `<p style="margin: 0; padding: 28px; border: 1px dashed ${tmave ? '#3b3833' : '#c9c1b2'}; font-size: 16px; color: ${tmave ? '#b9b2a6' : '#5b5751'}">${text}</p>`;
+  const t = TEXTY[lang] || TEXTY.sk;
+  return `<p style="margin: 0; padding: 28px; border: 1px dashed ${tmave ? '#3b3833' : '#c9c1b2'}; font-size: 16px; color: ${tmave ? '#b9b2a6' : '#5b5751'}">` +
+    `${t.prazdna} <a href="tel:+421944040684">+421 944 040 684</a>.</p>`;
 }
 
-// Anglická verzia: preklad údajov z bosen.sk (názvy a adresy inzerátov zostávajú v originále)
-function prelozFakt(f) {
-  return f
-    .replace(/^(\d+(?:,5)?) (?:izby|izieb)$/, (m, n) => `${n.replace(',', '.')} rooms`)
-    .replace(/^(\d+(?:,5)?) izba$/, (m, n) => `${n.replace(',', '.')} room`)
-    .replace(/^pozemok (.+)$/, (m, v) => `plot ${v.replace(/(\d) (\d{3})/g, '$1,$2')}`)
-    .replace(/^(\d+),(\d+) m²$/, '$1.$2 m²');
+// Texty kariet ponuky v jednotlivých jazykoch
+const TEXTY = {
+  sk: { predaj: 'V predaji', prenajom: 'Prenájom', detail: 'Detail', prazdna: 'Momentálne tu nemám žiadnu ponuku. Zavolajte mi na' },
+  en: { predaj: 'For sale', prenajom: 'For rent', detail: 'Details', prazdna: 'There are no listings here at the moment. Call me on' },
+  de: { predaj: 'Zu verkaufen', prenajom: 'Zu vermieten', detail: 'Details', prazdna: 'Derzeit gibt es hier keine Angebote. Rufen Sie mich an:' },
+};
+
+// Údaje z bosen.sk („2 izby“, „pozemok 1 246 m²“, „59,84 m²“) v jazyku stránky
+function prelozFakt(f, lang) {
+  if (lang === 'en') {
+    return f
+      .replace(/^(\d+(?:,5)?) (?:izby|izieb)$/, (m, n) => `${n.replace(',', '.')} rooms`)
+      .replace(/^(\d+(?:,5)?) izba$/, (m, n) => `${n.replace(',', '.')} room`)
+      .replace(/^pozemok (.+)$/, (m, v) => `plot ${v.replace(/(\d) (\d{3})/g, '$1,$2')}`)
+      .replace(/^(\d+),(\d+) m²$/, '$1.$2 m²');
+  }
+  if (lang === 'de') {
+    return f
+      .replace(/^(\d+(?:,5)?) (?:izby|izieb|izba)$/, '$1 Zimmer')
+      .replace(/^pozemok (.+)$/, (m, v) => `Grundstück ${v.replace(/(\d) (\d{3})/g, '$1.$2')}`);
+  }
+  return f;
 }
 
-function prelozCenu(c) {
+// Cena „429 000 €“ / „650 €/mes.“ v jazyku stránky
+function prelozCenu(c, lang) {
+  if (lang === 'sk') return c;
   const mes = /\/mes\.?$/.test(c);
-  const num = c.replace(/€.*$/, '').trim().replace(/\s/g, '').replace(/(\d)(?=(\d{3})+$)/g, '$1,');
-  return num ? `€${num}${mes ? '/month' : ''}` : c;
+  const cislo = c.replace(/€.*$/, '').trim().replace(/\s/g, '');
+  if (!/^\d+$/.test(cislo)) return c;
+  if (lang === 'en') return `€${cislo.replace(/(\d)(?=(\d{3})+$)/g, '$1,')}${mes ? '/month' : ''}`;
+  return `${cislo.replace(/(\d)(?=(\d{3})+$)/g, '$1.')} €${mes ? '/Monat' : ''}`;
+}
+
+// Názvy inzerátov z bosen.sk sú po slovensky – preložíme ich cez Workers AI do EN a DE.
+// Už preložené názvy sa berú z uložených dát, takže sa prekladajú iba nové inzeráty.
+const AI_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+async function prelozNazvy(env, items) {
+  let stare = {};
+  try {
+    const predtym = await env.PONUKA.get(KV_KLUC, 'json');
+    for (const it of (predtym && predtym.items) || []) {
+      if (it.preklad && it.preklad.en && it.preklad.de) stare[it.nazov] = it.preklad;
+    }
+  } catch (e) { /* bez cache */ }
+  for (const it of items) {
+    if (stare[it.nazov]) { it.preklad = stare[it.nazov]; continue; }
+    if (!env.AI) continue;
+    try {
+      it.preklad = await prelozNazov(env, it.nazov);
+      stare[it.nazov] = it.preklad;
+    } catch (e) {
+      console.error('Preklad názvu zlyhal', it.nazov, e);
+    }
+  }
+}
+
+async function prelozNazov(env, nazov) {
+  const res = await env.AI.run(AI_MODEL, {
+    messages: [
+      { role: 'system', content: 'You translate Slovak real-estate listing titles for a realtor website. ' +
+        'Return ONLY a JSON object {"en": "...", "de": "..."} with a natural, concise English and German title. ' +
+        'Keep street, town, district and building names in their original Slovak form. Keep all numbers and units (m², €). ' +
+        '"izb"/"izbový"/"izieb" means rooms (e.g. "5 izb dom" -> "5-room house" / "5-Zimmer-Haus"). ' +
+        'Do not add information that is not in the title. No quotes around the whole title, no explanations.' },
+      { role: 'user', content: nazov },
+    ],
+    max_tokens: 200,
+    temperature: 0.2,
+  });
+  const out = typeof res.response === 'string' ? res.response : JSON.stringify(res.response || '');
+  const m = out.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error('AI nevrátila JSON: ' + out.slice(0, 120));
+  const j = JSON.parse(m[0]);
+  const cisty = (s) => String(s || '').trim().replace(/^["„“]+|["“”]+$/g, '');
+  if (!cisty(j.en) || !cisty(j.de)) throw new Error('Neúplný preklad');
+  return { en: cisty(j.en), de: cisty(j.de) };
 }
 
 function upravNazov(s) {
