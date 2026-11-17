@@ -205,7 +205,7 @@ function karta(p, i, tmave) {
   const img = p.img
     ? `<img src="${esc(p.img)}" alt="${esc(p.nazov)}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block">`
     : '';
-  return `<article style="width: 380px; flex: 0 0 auto; scroll-snap-align: start; background: ${s.bg}; border: 1px solid ${s.line}; display: flex; flex-direction: column">` +
+  return `<article style="background: ${s.bg}; border: 1px solid ${s.line}; display: flex; flex-direction: column">` +
     `<div style="position: relative; height: 236px; overflow: hidden">${img}` +
     `<span style="position: absolute; left: 14px; top: 14px; background: ${s.badgeBg}; color: ${s.badgeFg}; padding: 7px 10px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase">${s.badge}</span>` +
     `<span style="position: absolute; right: 14px; bottom: 12px; color: #ffffff; font-family: 'IBM Plex Mono', monospace; font-size: 13px; text-shadow: 0 1px 6px rgba(0,0,0,0.6)">${no}</span></div>` +
