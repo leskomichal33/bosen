@@ -32,7 +32,7 @@ const PROFIL = 'https://www.bosen.sk/makler/119-michal-lesko';
 const BOSEN = 'https://www.bosen.sk';
 const KV_KLUC = 'ponuka';
 // Verzia uložených dát – 4 = názvy inzerátov majú preklad do EN, DE a UK
-const VERZIA_DAT = 4;
+const VERZIA_DAT = 5;
 const STRANKY = { sk: page, en: pageEn, de: pageDe, uk: pageUk };
 
 // Obrázky webu (fotky a certifikát), servírované priamo z Workera
@@ -321,6 +321,9 @@ async function prelozNazov(env, nazov) {
         'in Ukrainian keep those proper names in Latin script too (e.g. "біля Zámocký park", "у Senec"). ' +
         'Keep all numbers and units (m², €); write thousands with a separator (1,246 m² in English, 1.246 m² in German, 1 246 м² in Ukrainian). ' +
         '"izb"/"izbový"/"izieb" means rooms (e.g. "5 izb dom" -> "5-room house" / "5-Zimmer-Haus" / "5-кімнатний будинок"). ' +
+        'Glossary: "zariadený" = furnished / möbliert / мебльований; "rodinný dom" = family house / Einfamilienhaus / приватний будинок; ' +
+        '"novostavba" = new build / Neubau / новобудова; "tehlový" = brick / Ziegel- / цегляний; "klimatizovaný" = air-conditioned / klimatisiert / з кондиціонером. ' +
+        'Ukrainian must be grammatically correct (adjective agrees with noun, e.g. "3-кімнатна квартира з кондиціонером"). ' +
         'Do not add information that is not in the title. No quotes around the whole title, no explanations.' },
       { role: 'user', content: nazov },
     ],
