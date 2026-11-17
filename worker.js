@@ -12,6 +12,7 @@ import imgFotoPredaj from './img/foto-predaj.jpg';
 import imgFotoPrenajom from './img/foto-prenajom.jpg';
 import imgFotoOmne from './img/foto-omne.jpg';
 import imgFotoKontakt from './img/foto-kontakt.jpg';
+import imgLogoBiele from './img/bosen-logo-biele.png';
 
 const PROFIL = 'https://www.bosen.sk/makler/119-michal-lesko';
 const BOSEN = 'https://www.bosen.sk';
@@ -29,6 +30,7 @@ const OBRAZKY = {
   '/img/foto-prenajom.jpg': imgFotoPrenajom,
   '/img/foto-omne.jpg': imgFotoOmne,
   '/img/foto-kontakt.jpg': imgFotoKontakt,
+  '/img/bosen-logo-biele.png': imgLogoBiele,
 };
 
 export default {
