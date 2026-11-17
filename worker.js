@@ -2,19 +2,40 @@
 // Raz denne (cron) sa načíta profil makléra, ponuky sa uložia do KV a stránka ich zobrazí.
 // Keď sa ponuku nepodarí načítať, zostane posledná známa ponuka (alebo ponuka priamo v index.html).
 import page from './index.html';
+import imgHero from './img/hero.jpg';
+import imgPortret from './img/portret.jpg';
+import imgPortretMichal from './img/portret-michal.jpg';
+import imgOcenenie from './img/ocenenie.jpg';
+import imgPodpisSvetly from './img/podpis-svetly.png';
+import imgPodpisTmavy from './img/podpis-tmavy.png';
 
 const PROFIL = 'https://www.bosen.sk/makler/119-michal-lesko';
 const BOSEN = 'https://www.bosen.sk';
 const KV_KLUC = 'ponuka';
 
+// Obrázky webu (fotky a certifikát), servírované priamo z Workera
+const OBRAZKY = {
+  '/img/hero.jpg': imgHero,
+  '/img/portret.jpg': imgPortret,
+  '/img/portret-michal.jpg': imgPortretMichal,
+  '/img/ocenenie.jpg': imgOcenenie,
+  '/img/podpis-svetly.png': imgPodpisSvetly,
+  '/img/podpis-tmavy.png': imgPodpisTmavy,
+};
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (url.pathname !== '/' && url.pathname !== '/index.html') {
-      return new Response('Stránka sa nenašla', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
-    }
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       return new Response('Method not allowed', { status: 405 });
+    }
+    if (OBRAZKY[url.pathname]) {
+      return new Response(OBRAZKY[url.pathname], {
+        headers: { 'content-type': url.pathname.endsWith('.png') ? 'image/png' : 'image/jpeg', 'cache-control': 'public, max-age=604800' },
+      });
+    }
+    if (url.pathname !== '/' && url.pathname !== '/index.html') {
+      return new Response('Stránka sa nenašla', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
     }
 
     let data = null;
@@ -36,17 +57,16 @@ export default {
     const response = new Response(page, { headers });
     if (!data || !data.items || !data.items.length) return response;
 
-    const items = data.items;
-    const nPredaj = items.filter((i) => i.typ === 'predaj').length;
-    const nPrenajom = items.filter((i) => i.typ === 'prenajom').length;
-    const filtre =
-      `<button class="filter active" data-filter="all" onclick="filterCards(this)">Všetko (${items.length})</button>` +
-      (nPredaj ? `<button class="filter" data-filter="predaj" onclick="filterCards(this)">Predaj (${nPredaj})</button>` : '') +
-      (nPrenajom ? `<button class="filter" data-filter="prenajom" onclick="filterCards(this)">Prenájom (${nPrenajom})</button>` : '');
+    // Dve samostatné ponuky: pilier Predaj (svetlé karty) a pilier Prenájom (tmavé karty)
+    const predaj = data.items.filter((i) => i.typ === 'predaj');
+    const prenajom = data.items.filter((i) => i.typ === 'prenajom');
+    const obsah = (list, tmave) => list.length
+      ? '\n' + list.map((p, i) => karta(p, i, tmave)).join('\n') + '\n'
+      : prazdna(tmave);
 
     return new HTMLRewriter()
-      .on('div.cards', { element(el) { el.setInnerContent('\n' + items.map(karta).join('\n') + '\n', { html: true }); } })
-      .on('div.filters', { element(el) { el.setInnerContent(filtre, { html: true }); } })
+      .on('div[data-ponuka="predaj"]', { element(el) { el.setInnerContent(obsah(predaj, false), { html: true }); } })
+      .on('div[data-ponuka="prenajom"]', { element(el) { el.setInnerContent(obsah(prenajom, true), { html: true }); } })
       .transform(response);
   },
 
@@ -140,17 +160,33 @@ function parsujKarty(sekcia) {
   return out;
 }
 
-function karta(p, i) {
-  const badge = i === 0 ? 'Novinka' : p.typ === 'prenajom' ? 'Prenájom' : p.druh;
-  const meta = `${p.druh} · ${p.typ === 'prenajom' ? 'Prenájom' : 'Predaj'}`;
+// Karta nehnuteľnosti v dizajne webu: svetlá (pilier Predaj) alebo tmavá (pilier Prenájom)
+function karta(p, i, tmave) {
+  const s = tmave
+    ? { bg: '#1f1e1c', line: '#3b3833', muted: '#b9b2a6', price: '#d7b56d', badgeBg: '#d7b56d', badgeFg: '#141312', badge: 'Prenájom', link: '' }
+    : { bg: '#f7f5f0', line: '#ddd6c8', muted: '#5b5751', price: '#7a5c1f', badgeBg: '#141312', badgeFg: '#f7f5f0', badge: 'V predaji', link: ' color: #141312;' };
+  const fakty = p.features
+    .filter((f) => /^[⌂▱▧]/.test(f))
+    .map((f) => f.replace(/^[⌂▱▧]\s*/, '').replace(/^(.+)\s+pozemok$/, 'pozemok $1'))
+    .join(' · ');
+  const no = String(i + 1).padStart(2, '0');
   const img = p.img
-    ? `<img src="${esc(p.img)}" alt="${esc(p.nazov)}" loading="lazy">`
+    ? `<img src="${esc(p.img)}" alt="${esc(p.nazov)}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block">`
     : '';
-  return `      <article class="card" data-type="${p.typ}"><div class="card-img">${img}<span class="badge">${esc(badge)}</span>` +
-    `<button class="heart" aria-label="Pridať do obľúbených" onclick="this.textContent=this.textContent==='♡'?'♥':'♡'">♡</button></div>` +
-    `<div class="card-body"><div class="card-meta">${esc(meta)}</div><h3>${esc(p.nazov)}</h3><div class="address">${esc(p.adresa)}</div>` +
-    `<div class="features">${p.features.map((f) => `<span>${esc(f)}</span>`).join('')}</div>` +
-    `<div class="price-row"><span class="price">${esc(p.cena)}</span><a class="detail" href="${esc(p.odkaz)}" target="_blank" rel="noopener">Detail na BOSEN ↗</a></div></div></article>`;
+  return `<article style="width: 380px; flex: 0 0 auto; scroll-snap-align: start; background: ${s.bg}; border: 1px solid ${s.line}; display: flex; flex-direction: column">` +
+    `<div style="position: relative; height: 236px; overflow: hidden">${img}` +
+    `<span style="position: absolute; left: 14px; top: 14px; background: ${s.badgeBg}; color: ${s.badgeFg}; padding: 7px 10px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase">${s.badge}</span>` +
+    `<span style="position: absolute; right: 14px; bottom: 12px; color: #ffffff; font-family: 'IBM Plex Mono', monospace; font-size: 13px; text-shadow: 0 1px 6px rgba(0,0,0,0.6)">${no}</span></div>` +
+    `<div style="padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 10px; flex: 1">` +
+    `<div style="display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: ${s.muted}"><span>${esc(p.adresa)}</span><strong style="color: ${s.price}; font-size: 15px; white-space: nowrap">${esc(p.cena)}</strong></div>` +
+    `<h4 style="margin: 0; font-size: 21px; line-height: 1.2; letter-spacing: -0.03em; font-weight: 700">${esc(p.nazov)}</h4>` +
+    `<div style="margin-top: auto; padding-top: 14px; border-top: 1px solid ${s.line}; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; color: ${s.muted}"><span>${esc(fakty)}</span>` +
+    `<a href="${esc(p.odkaz)}" target="_blank" rel="noopener" style="font-weight: 700; font-size: 15px;${s.link}">Detail ↗</a></div></div></article>`;
+}
+
+function prazdna(tmave) {
+  return `<p style="margin: 0; padding: 28px; border: 1px dashed ${tmave ? '#3b3833' : '#c9c1b2'}; font-size: 16px; color: ${tmave ? '#b9b2a6' : '#5b5751'}">` +
+    `Momentálne tu nemám žiadnu ponuku. Zavolajte mi na <a href="tel:+421944040684">+421 944 040 684</a>.</p>`;
 }
 
 function upravNazov(s) {
