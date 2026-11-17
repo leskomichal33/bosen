@@ -138,9 +138,10 @@ async function vypocitaj(v, env, fotky) {
 
   let zakladM2 = null; let zdroj = '';
   if (vyber.m2) {
-    const w = Math.min(1, vyber.pocet / 8);
+    const w = vyber.pocet >= 4 ? 1 : 0.5 + vyber.pocet / 8;
     zakladM2 = nbsM2 && w < 1 ? vyber.m2 * w + nbsM2 * (1 - w) : vyber.m2;
     zdroj = w < 1 && nbsM2 ? 'porovnateľné inzeráty doplnené štatistikou NBS' : 'porovnateľné inzeráty v okolí';
+    vyber.zakladM2 = Math.round(vyber.m2);
   } else if (nbsM2) {
     zakladM2 = nbsM2; zdroj = 'štatistika NBS pre kraj (málo porovnateľných inzerátov)';
   }
@@ -161,7 +162,7 @@ async function vypocitaj(v, env, fotky) {
 
   const vysledok = {
     odhad: true, od, do: doo, stred: zaokruhli(stred), m2, istota, zdroj,
-    pocet: vyber.pocet, polomer: vyber.polomer, kraj, nbsM2,
+    pocet: vyber.pocet, polomer: vyber.polomer, kraj, nbsM2, zakladM2: vyber.zakladM2 || null,
     upravy: upravy.filter((u) => u.k !== 1).map((u) => ({ t: u.t, p: Math.round((u.k - 1) * 100) })),
     korekcia: Math.round((KOREKCIA_REALIZACIA - 1) * 100),
     porovnania: vyber.zoznam.slice(0, 6), okolie, foto, stavZFotiek: !!v.stavZFotiek,
@@ -209,17 +210,19 @@ function vyberPorovnatelne(v, riadky, poloha, geo) {
     if (kluce.some((k) => videne.has(k))) continue;
     kluce.forEach((k) => videne.add(k));
     const g = geo[r.locality];
-    const d = poloha && g ? vzdialenost(poloha.lat, poloha.lon, g.lat, g.lon) : null;
+    const lok = (r.locality || '').toLowerCase();
+    let d = poloha && g ? vzdialenost(poloha.lat, poloha.lon, g.lat, g.lon) : null;
+    if (d == null && poloha && lok && lok === v.obec.toLowerCase()) d = 0.5;   // rovnaká obec / mestská časť
     kand.push({ ...r, m2, izby, d });
   }
 
   let polomer = null;
   let vyber = [];
   if (poloha) {
-    for (const km of [2, 4, 8, 15, 30]) {
+    for (const km of [2, 4, 8, 15, 25]) {
       vyber = kand.filter((c) => c.d != null && c.d <= km);
       polomer = km;
-      if (vyber.length >= 8) break;
+      if (vyber.length >= 6) break;
     }
   }
   if (vyber.length < 3) {
@@ -337,7 +340,7 @@ async function diag(q) {
     ['overpass_coffee', 'https://overpass.private.coffee/api/interpreter', { method: 'POST', body: 'data=' + encodeURIComponent('[out:json];node(48.43,17.01,48.44,17.02)[highway=bus_stop];out 1;'), headers: { 'user-agent': UA, 'content-type': 'application/x-www-form-urlencoded' } }],
     ['overpass', 'https://overpass-api.de/api/interpreter', { method: 'POST', body: 'data=' + encodeURIComponent('[out:json];node(48.43,17.01,48.44,17.02)[highway=bus_stop];out 1;'), headers: { 'user-agent': UA, 'content-type': 'application/x-www-form-urlencoded' } }],
   ]) {
-    try { const r = await fetch(u, o); out[n] = { status: r.status, body: (await r.text()).slice(0, 300) }; } catch (e) { out[n] = { chyba: String(e) }; }
+    try { const r = await fetch(u, { ...o, signal: AbortSignal.timeout(8000) }); out[n] = { status: r.status, body: (await r.text()).slice(0, 300) }; } catch (e) { out[n] = { chyba: String(e) }; }
   }
   out.geokoduj = await geokoduj(q).catch((e) => String(e));
   return out;
@@ -351,18 +354,15 @@ async function mapoveData(p) {
     nwr(around:1500,${p.lat},${p.lon})[amenity~"school|kindergarten"];
     nwr(around:1000,${p.lat},${p.lon})[leisure=park];
   );out center 400;`;
-  let data = null;
-  for (const server of ['https://overpass.kumi.systems/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://overpass-api.de/api/interpreter']) {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 7000);
-    try {
-      const res = await fetch(server, {
-        method: 'POST', body: 'data=' + encodeURIComponent(q), signal: ctrl.signal,
-        headers: { 'user-agent': UA, 'content-type': 'application/x-www-form-urlencoded' },
-      });
-      if (res.ok) { data = await res.json(); break; }
-    } catch (e) { /* ďalší server */ } finally { clearTimeout(t); }
-  }
+  const servery = ['https://overpass.private.coffee/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://overpass-api.de/api/interpreter'];
+  const data = await Promise.any(servery.map(async (s) => {
+    const res = await fetch(s, {
+      method: 'POST', body: 'data=' + encodeURIComponent(q), signal: AbortSignal.timeout(6000),
+      headers: { 'user-agent': UA, 'content-type': 'application/x-www-form-urlencoded' },
+    });
+    if (!res.ok) throw new Error('Overpass ' + res.status);
+    return res.json();
+  })).catch(() => null);
   if (!data) return null;
   const { elements = [] } = data;
   const najblizsie = (f) => {
@@ -385,7 +385,7 @@ async function aiText(env, v, r) {
   if (!env.AI) return null;
   const fakty = {
     nehnutelnost: popisNehnutelnosti(v), odhad: `${eur(r.od)} – ${eur(r.do)}`, cena_m2: `${r.m2} €/m²`,
-    zdroj: r.zdroj, pocet_porovnani: r.pocet, polomer_km: r.polomer, nbs_kraj_m2: r.nbsM2, kraj: r.kraj,
+    zdroj: r.zdroj, pocet_porovnani: r.pocet, polomer_km: r.polomer, ponukova_cena_porovnani_m2: r.zakladM2,
     upravy: r.upravy.map((u) => `${u.t} ${u.p > 0 ? '+' : ''}${u.p} %`), korekcia_na_realizovane_ceny: `${r.korekcia} %`,
     okolie: r.okolie, fotky: r.foto && r.foto.poznamka,
   };
@@ -394,7 +394,8 @@ async function aiText(env, v, r) {
       { role: 'system', content: 'Si skúsený realitný maklér Michal Leško (BOSEN Group) a vysvetľuješ majiteľovi orientačný odhad ceny. ' +
         'Píš gramaticky správnou, prirodzenou spisovnou slovenčinou v 1. osobe (napr. „porovnal som“), činným rodom, bez trpného rodu typu „cena je zvyšovaná“. ' +
         'Napíš presne 3 krátke vety: 1) z koľkých a akých porovnaní odhad vychádza, 2) čo cenu zvyšuje alebo znižuje (vlastnosti nehnuteľnosti a okolie), 3) čo upresní obhliadka. ' +
-        'Používaj IBA čísla a fakty z poskytnutých údajov, nič si nevymýšľaj, neopakuj celé cenové rozpätie. Bez oslovenia, podpisu a upozornení. ' +
+        'Používaj IBA čísla a fakty z poskytnutých údajov, nič si nevymýšľaj, neopakuj celé cenové rozpätie a nespomínaj korekciu na realizované ceny. Bez oslovenia, podpisu a upozornení. ' +
+        'Pozor na pády a zhodu (napr. „kompletná rekonštrukcia“, „po kompletnej rekonštrukcii“). ' +
         'Vzor štýlu: „Porovnal som 8 podobných bytov v okolí do 4 km, ktoré sa dnes ponúkajú za približne 4 800 €/m². Cenu zvyšuje tehlová stavba a balkón, naopak pôvodný stav ju znižuje. Presnú cenu upresním po obhliadke, keď uvidím dispozíciu, výhľad a skutočný stav.“' },
       { role: 'user', content: JSON.stringify(fakty) },
     ],
