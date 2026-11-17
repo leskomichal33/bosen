@@ -13,6 +13,17 @@ import imgFotoPrenajom from './img/foto-prenajom.jpg';
 import imgFotoOmne from './img/foto-omne.jpg';
 import imgFotoKontakt from './img/foto-kontakt.jpg';
 import imgLogoBiele from './img/bosen-logo-biele.png';
+import img_pozadie_jpg from './img/pozadie.jpg';
+import img_pozadie_motto_jpg from './img/pozadie-motto.jpg';
+import img_krok_1_jpg from './img/krok-1.jpg';
+import img_krok_2_jpg from './img/krok-2.jpg';
+import img_krok_3_jpg from './img/krok-3.jpg';
+import img_krok_4_jpg from './img/krok-4.jpg';
+import img_krok_5_jpg from './img/krok-5.jpg';
+import img_krok_6_jpg from './img/krok-6.jpg';
+import img_krok_7_jpg from './img/krok-7.jpg';
+import img_krok_8_jpg from './img/krok-8.jpg';
+import img_krok_9_jpg from './img/krok-9.jpg';
 
 const PROFIL = 'https://www.bosen.sk/makler/119-michal-lesko';
 const BOSEN = 'https://www.bosen.sk';
@@ -31,6 +42,17 @@ const OBRAZKY = {
   '/img/foto-omne.jpg': imgFotoOmne,
   '/img/foto-kontakt.jpg': imgFotoKontakt,
   '/img/bosen-logo-biele.png': imgLogoBiele,
+  '/img/pozadie.jpg': img_pozadie_jpg,
+  '/img/pozadie-motto.jpg': img_pozadie_motto_jpg,
+  '/img/krok-1.jpg': img_krok_1_jpg,
+  '/img/krok-2.jpg': img_krok_2_jpg,
+  '/img/krok-3.jpg': img_krok_3_jpg,
+  '/img/krok-4.jpg': img_krok_4_jpg,
+  '/img/krok-5.jpg': img_krok_5_jpg,
+  '/img/krok-6.jpg': img_krok_6_jpg,
+  '/img/krok-7.jpg': img_krok_7_jpg,
+  '/img/krok-8.jpg': img_krok_8_jpg,
+  '/img/krok-9.jpg': img_krok_9_jpg,
 };
 
 export default {
