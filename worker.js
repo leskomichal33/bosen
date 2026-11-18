@@ -33,7 +33,10 @@ const PROFIL = 'https://www.bosen.sk/makler/119-michal-lesko';
 const BOSEN = 'https://www.bosen.sk';
 const KV_KLUC = 'ponuka';
 // Verzia uložených dát – 4 = názvy inzerátov majú preklad do EN, DE a UK
-const VERZIA_DAT = 5;
+// Zvýšenie verzie vynúti okamžité načítanie ponuky pri najbližšej návšteve webu (bez čakania na ranný cron).
+const VERZIA_DAT = 6;
+// Preklady názvov uložené od tejto verzie sú platné a znova sa neprekladajú
+const PREKLADY_OD_VERZIE = 5;
 const STRANKY = { sk: page, en: pageEn, de: pageDe, uk: pageUk };
 
 // Obrázky webu (fotky a certifikát), servírované priamo z Workera
@@ -299,7 +302,7 @@ async function prelozNazvy(env, items) {
   let stare = {};
   try {
     const predtym = await env.PONUKA.get(KV_KLUC, 'json');
-    const platne = predtym && predtym.verzia === VERZIA_DAT ? predtym.items : [];
+    const platne = predtym && predtym.verzia >= PREKLADY_OD_VERZIE ? predtym.items : [];
     for (const it of platne || []) {
       if (it.preklad && it.preklad.en && it.preklad.de && it.preklad.uk) stare[it.nazov] = it.preklad;
     }
