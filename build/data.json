@@ -1,0 +1,383 @@
+{
+ "accent": "#d7b56d",
+ "saleListings": [
+  {
+   "url": "https://www.bosen.sk/nehnutelnost/12298030-bosen-5-izbovy-rodinny-dom-pri-zamockom-parku",
+   "img": "/_blob/0440c0a299b11440c6397597fb5edd2e",
+   "place": "Duklianskych Hrdinov, Malacky",
+   "title": "5-izbový dom pri Zámockom parku",
+   "facts": "127 m² · pozemok 1 246 m²",
+   "price": "429 000 €",
+   "no": "01"
+  },
+  {
+   "url": "https://www.bosen.sk/nehnutelnost/12297878-bosen-moderne-5-izbove-domy-na-zahori-uprostred-prirody",
+   "img": "/_blob/7399bea0fa86e05fa443b59c3dba78fd",
+   "place": "Na humnisku, Borský Mikuláš",
+   "title": "Moderné 5-izbové domy na Záhorí",
+   "facts": "5 izieb · 121 m²",
+   "price": "219 000 €",
+   "no": "02"
+  },
+  {
+   "url": "https://www.bosen.sk/nehnutelnost/12297865-bosen-4-izbovy-rodinny-bungalov-na-carovnom-mieste",
+   "img": "/_blob/adc5ba428a0a3748889b38888f75ba71",
+   "place": "Šoriakoš, Mostová",
+   "title": "4-izbový rodinný bungalov",
+   "facts": "4 izby · 174 m²",
+   "price": "199 900 €",
+   "no": "03"
+  },
+  {
+   "url": "https://www.bosen.sk/nehnutelnost/12297220-bosen-rodinny-dom-s-garazou-v-rovinke-pozemok-914m2",
+   "img": "/_blob/309558753721884231c63856c724ad9b",
+   "place": "Školská, Rovinka",
+   "title": "Rodinný dom s garážou a veľkým pozemkom",
+   "facts": "200 m² · pozemok 914 m²",
+   "price": "359 900 €",
+   "no": "04"
+  },
+  {
+   "url": "https://www.bosen.sk/nehnutelnost/12297218-bosen-4-izbovy-rodinny-dom-bez-investicii-pozemok-623m2",
+   "img": "/_blob/5e37680f8d8e6a8fe2ce3d5379901c2f",
+   "place": "Peterská, Borský Mikuláš",
+   "title": "Zariadený dom bez investícií",
+   "facts": "169 m² · pozemok 623 m²",
+   "price": "153 000 €",
+   "no": "05"
+  }
+ ],
+ "rentListings": [
+  {
+   "url": "https://www.bosen.sk/nehnutelnost/12298472-bosen-na-prenajom-zariadena-2-izb-novostavba-s-garazou-petrzalka-topolcianska",
+   "img": "/_blob/0d3ce6fdc870c06966be80acab6df25a",
+   "place": "Topoľčianska, Bratislava-Petržalka",
+   "title": "Zariadená 2-izbová novostavba s garážou",
+   "facts": "2 izby · 47 m²",
+   "price": "650 €/mes.",
+   "no": "01"
+  },
+  {
+   "url": "https://www.bosen.sk/nehnutelnost/12298463-bosen-na-prenajom-3i-byt-v-uplnom-centre-bratislavy-cintorinska",
+   "img": "/_blob/bc0fcf59db89d932c2fca77a599b0654",
+   "place": "Cintorínska, Bratislava-Staré Mesto",
+   "title": "3-izbový byt v úplnom centre Bratislavy",
+   "facts": "3 izby · 79 m²",
+   "price": "1 580 €/mes.",
+   "no": "02"
+  },
+  {
+   "url": "https://www.bosen.sk/nehnutelnost/12298455-bosen-na-prenajom-3-izb-byt-tehla-lamac",
+   "img": "/_blob/d0f589f6ff7efaf3396171890dc0a2fe",
+   "place": "Studenohorská, Bratislava-Lamač",
+   "title": "3-izbový tehlový byt v Lamači",
+   "facts": "3 izby · 84 m²",
+   "price": "1 000 €/mes.",
+   "no": "03"
+  },
+  {
+   "url": "https://www.bosen.sk/nehnutelnost/12298453-bosen-na-prenajom-zariadeny-2-izb-byt-klima-balkon-a-parkovanie-senec",
+   "img": "/_blob/a5babc0dd10c620da17caf74ac67ea4b",
+   "place": "Slávičia, Senec",
+   "title": "Zariadený 2-izbový byt s balkónom a klímou",
+   "facts": "2 izby · 59,8 m²",
+   "price": "690 €/mes.",
+   "no": "04"
+  },
+  {
+   "url": "https://www.bosen.sk/nehnutelnost/12298403-bosen-na-prenajom-klimatizovany-3i-byt-v-bratislave-ruzinov",
+   "img": "/_blob/9551378ee064fbfc8ace0cd4c072dfb1",
+   "place": "Korytnická, Podunajské Biskupice",
+   "title": "Klimatizovaný 3-izbový byt",
+   "facts": "3 izby · 70,4 m²",
+   "price": "750 €/mes.",
+   "no": "05"
+  },
+  {
+   "url": "https://www.bosen.sk/nehnutelnost/12298369-bosen-na-prenajom-2i-byt-v-mrakodrape-eurovea-tower",
+   "img": "/_blob/ac14a564a5230bb80760f7a084b4f1ff",
+   "place": "Pribinova, Bratislava-Ružinov",
+   "title": "2-izbový byt v Eurovea Tower",
+   "facts": "2 izby · 59,6 m²",
+   "price": "1 200 €/mes.",
+   "no": "06"
+  }
+ ],
+ "saleServices": [
+  {
+   "title": "Bezplatné ocenenie",
+   "text": "Cenu odporučím podľa lokality, stavu a porovnateľných nehnuteľností v okolí.",
+   "no": "01"
+  },
+  {
+   "title": "Prezentácia a marketing",
+   "text": "Fotky, video, 3D prehliadka, reklama a ďalšie možnosti – podrobne nižšie.",
+   "no": "02"
+  },
+  {
+   "title": "Obhliadky a vyjednávanie",
+   "text": "Obhliadky zabezpečím ja a za vás vyjednám čo najlepšie podmienky.",
+   "no": "03"
+  },
+  {
+   "title": "Právny servis a hypotéky",
+   "text": "Zmluvy a financovanie kupujúceho cez zázemie BOSEN.",
+   "no": "04"
+  },
+  {
+   "title": "Odovzdanie nehnuteľnosti",
+   "text": "Som pri vás až po posledný podpis a odovzdanie kľúčov.",
+   "no": "05"
+  }
+ ],
+ "rentServices": [
+  {
+   "title": "Odporúčaná výška nájmu",
+   "text": "Nájom nastavím podľa lokality, stavu a porovnateľných ponúk v okolí.",
+   "no": "01"
+  },
+  {
+   "title": "Príprava a marketing",
+   "text": "Fotografie, popis a inzercia, ktorá osloví správnych nájomcov.",
+   "no": "02"
+  },
+  {
+   "title": "Výber nájomcu",
+   "text": "Obhliadky, preverenie záujemcov a odporúčanie toho najvhodnejšieho.",
+   "no": "03"
+  },
+  {
+   "title": "Zmluva a odovzdanie",
+   "text": "Nájomnú zmluvu a odovzdanie pripravíme so zázemím BOSEN.",
+   "no": "04"
+  },
+  {
+   "title": "Údaje si uchovám",
+   "text": "Fotky, popis aj podklady mám pripravené na ďalší prenájom alebo predaj.",
+   "no": "05"
+  }
+ ],
+ "saleFaq": [
+  {
+   "q": "Čo sa stane na prvom stretnutí?",
+   "a": "Najprv sa porozprávame. Zistím, prečo predávate, čo je pre vás dôležité a aký máte plán. Bez tlaku a bez záväzkov.",
+   "no": "01",
+   "open": true,
+   "icon": "×",
+   "iconStyle": "width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; background: #141312; color: #f7f5f0"
+  },
+  {
+   "q": "Koľko stojí ocenenie nehnuteľnosti?",
+   "a": "Nič. Ocenenie je bezplatné a cenu odporučím podľa lokality, stavu a porovnateľných nehnuteľností.",
+   "no": "02",
+   "open": false,
+   "icon": "+",
+   "iconStyle": "width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid #8f877a; color: #141312"
+  },
+  {
+   "q": "Kto vybaví zmluvy a hypotéku kupujúceho?",
+   "a": "Komunikujete so mnou. Právny servis a hypotekárne poradenstvo zabezpečuje zázemie BOSEN Group.",
+   "no": "03",
+   "open": false,
+   "icon": "+",
+   "iconStyle": "width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid #8f877a; color: #141312"
+  }
+ ],
+ "rentFaq": [
+  {
+   "q": "Čo ak sa nájomca odsťahuje?",
+   "a": "Fotky, popis aj údaje o nehnuteľnosti si uchovám. Ponuku viem hneď obnoviť a osloviť ďalších záujemcov, takže byt nebude zbytočne stáť prázdny.",
+   "no": "01",
+   "open": true,
+   "icon": "×",
+   "iconStyle": "width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; background: #d7b56d; color: #141312"
+  },
+  {
+   "q": "Kto pripraví nájomnú zmluvu?",
+   "a": "Nájomnú zmluvu aj odovzdanie bytu pripravíme spolu so zázemím BOSEN Group. Vy len skontrolujete a podpíšete.",
+   "no": "02",
+   "open": false,
+   "icon": "+",
+   "iconStyle": "width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid #8f877a; color: #f7f5f0"
+  },
+  {
+   "q": "Prenajímam už roky. Pomôžete mi aj s predajom?",
+   "a": "Áno. Nehnuteľnosť už poznám, podklady mám pripravené a spolu vyberieme správny moment aj spôsob – s nájomcom alebo po skončení nájmu.",
+   "no": "03",
+   "open": false,
+   "icon": "+",
+   "iconStyle": "width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid #8f877a; color: #f7f5f0"
+  }
+ ],
+ "marketing": [
+  {
+   "title": "Prezentácia nehnuteľnosti",
+   "items": [
+    {
+     "t": "Profesionálne fotky a video",
+     "d": "Fotograf so širokouhlým objektívom a správnym svetlom."
+    },
+    {
+     "t": "Zábery z dronu",
+     "d": "Pri domoch, pozemkoch a chatách ukážu okolie, prístupové cesty aj susedstvo."
+    },
+    {
+     "t": "3D virtuálna prehliadka",
+     "d": "Záujemca si nehnuteľnosť prejde online, takže na obhliadky chodia ľudia, ktorí ju už poznajú."
+    },
+    {
+     "t": "Pôdorys a 2D/3D vizualizácia",
+     "d": "Kupujúci si vie predstaviť dispozíciu."
+    },
+    {
+     "t": "Home staging",
+     "d": "Základný (upratanie, depersonalizácia, jemné dozariadenie) alebo plný s prenajatým nábytkom."
+    },
+    {
+     "t": "Vizualizácia rekonštrukcie",
+     "d": "Pri zanedbanej nehnuteľnosti ukáže jej potenciál, aj pomocou AI vizualizácie."
+    }
+   ],
+   "no": "01"
+  },
+  {
+   "title": "Platená online reklama",
+   "items": [
+    {
+     "t": "Facebook a Instagram",
+     "d": "Cielenie podľa lokality, veku a záujmov, aj na publikum podobné našim klientom."
+    },
+    {
+     "t": "Retargeting",
+     "d": "Reklama sa znova ukáže ľuďom, ktorí si vašu ponuku už pozreli."
+    },
+    {
+     "t": "Google Ads a YouTube",
+     "d": "Oslovia ľudí, ktorí práve hľadajú, napríklad „byt Malacky predaj“. Aj krátke videoprehliadky pred YouTube videami."
+    },
+    {
+     "t": "Sklik",
+     "d": "Reklama vo vyhľadávači Seznam ako doplnok ku Google."
+    },
+    {
+     "t": "Topovanie na portáloch",
+     "d": "Zvýraznenie a prémiové umiestnenie na Nehnutelnosti.sk, Topreality.sk a Reality.sk."
+    }
+   ],
+   "no": "02"
+  },
+  {
+   "title": "Offline a lokálne aktivity",
+   "items": [
+    {
+     "t": "Deň otvorených dverí",
+     "d": "Viacerí záujemcovia si nehnuteľnosť pozrú v jeden čas."
+    },
+    {
+     "t": "Letáky do okolia",
+     "d": "Oslovíme domácnosti v bezprostrednom susedstve."
+    },
+    {
+     "t": "Tabuľa „Na predaj“ s QR kódom",
+     "d": "Priamo na nehnuteľnosti, s odkazom na celú ponuku."
+    },
+    {
+     "t": "Predaj najprv pre našich klientov",
+     "d": "Pred zverejnením pošlem ponuku vlastnej databáze záujemcov – e-mailom, SMS alebo cez WhatsApp."
+    }
+   ],
+   "no": "03"
+  },
+  {
+   "title": "Video, obsah a odporúčania",
+   "items": [
+    {
+     "t": "Reels a TikTok videá",
+     "d": "Krátke prehliadky s príbehom nehnuteľnosti alebo lokality (30 – 60 s)."
+    },
+    {
+     "t": "Video „čo dostanete za túto cenu“",
+     "d": "Porovnanie nehnuteľností alebo lokalít, ktoré zaujme a šíri sa."
+    },
+    {
+     "t": "Články o lokalite",
+     "d": "Škôlky, doprava a ceny bývania – aby vašu ponuku našli aj cez vyhľadávač."
+    },
+    {
+     "t": "Odporúčania klientov",
+     "d": "Video referencie a Google recenzie, ktoré budujú dôveru."
+    }
+   ],
+   "no": "04"
+  },
+  {
+   "title": "Spolupráca a širší dosah",
+   "items": [
+    {
+     "t": "Ďalší makléri",
+     "d": "Ponuku pošlem aj kolegom, ktorí majú vlastných kupujúcich."
+    },
+    {
+     "t": "Hypotekárni poradcovia a developeri",
+     "d": "Posielajú klientov, ktorí už majú schválenú hypotéku."
+    },
+    {
+     "t": "Investori a firmy",
+     "d": "Pri väčších objektoch investori, zamestnávatelia v okolí či relokačné agentúry."
+    },
+    {
+     "t": "Ponuka v angličtine",
+     "d": "Pre cudzincov a expatov, ktorí hľadajú bývanie u nás."
+    }
+   ],
+   "no": "05"
+  }
+ ],
+ "reviews": [
+  {
+   "name": "Tomáš G.",
+   "deal": "predaj nehnuteľnosti",
+   "text": "Vďaka jeho skúsenostiam a precíznosti sa nám podarilo predať nehnuteľnosť za výborných podmienok a vo veľmi krátkom čase. Všetko prebehlo hladko a bez stresu."
+  },
+  {
+   "name": "Martina Č.",
+   "deal": "prenájom bytu",
+   "text": "Zabezpečil nafotenie môjho bytu do pár dní, byt sa okamžite prenajal, pričom nájomníkov dal preveriť. Michal má profesionálny a priateľský prístup."
+  },
+  {
+   "name": "Michal H.",
+   "deal": "predaj bytu",
+   "text": "Mal prehľad o trhu aj cenách nehnuteľností a správne nastavenou cenou sa nám podarilo náš byt predať v pomerne rýchlom čase."
+  },
+  {
+   "name": "Pavel R.",
+   "deal": "predaj nehnuteľnosti",
+   "text": "Absolútna profesionalita a ochota hneď od začiatku. Na prvom stretnutí mali pre mňa nachystané ceny za m² v danej lokalite. Vrelo odporúčam."
+  },
+  {
+   "name": "Jana S.",
+   "deal": "predaj domu so záhradou",
+   "text": "Bol skvelým poradcom, vždy promptne reagoval a všetko dotiahol do úspešného konca."
+  },
+  {
+   "name": "Anna S.",
+   "deal": "kúpa domu",
+   "text": "Naozaj sa tak často nevidí takýto profesijný a pritom ľudský prístup, ochota a ústretovosť."
+  },
+  {
+   "name": "Peter G.",
+   "deal": "kúpa rodinného domu",
+   "text": "Pán Leško bol veľmi ochotný, vychádzal nám maximálne v ústrety a vždy reagoval flexibilne."
+  },
+  {
+   "name": "Simona S.",
+   "deal": "kúpa rodinného domu",
+   "text": "Príjemná komunikácia, profesionálny a zároveň ľudský prístup. O všetkom sme boli v momente informovaní."
+  },
+  {
+   "name": "Peter S.",
+   "deal": "kúpa nehnuteľnosti",
+   "text": "Počas celého procesu kúpy nehnuteľnosti preukázal profesionálny prístup, spoľahlivosť a výbornú komunikáciu."
+  }
+ ]
+}
