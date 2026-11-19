@@ -13,13 +13,13 @@ sk = open(SRC, encoding='utf-8').read()
 FORM = {
     'en': {'value="Predávam"': 'value="Selling"', 'value="Prenajímam"': 'value="Renting out"',
            "'Dopyt z webu — '": "'Website enquiry — '", "'Čo riešim: '": "'Need: '",
-           "'Meno: '": "'Name: '", "'Kontakt: '": "'Contact: '"},
+           "'Meno: '": "'Name: '", "'Kontakt: '": "'Contact: '", "'Ďakujem, správu som dostal.'": "'Thank you, I have received your message.'", "'Ozvem sa vám najneskôr nasledujúci pracovný deň.'": "'I will get back to you by the next working day at the latest.'"},
     'de': {'value="Predávam"': 'value="Verkaufen"', 'value="Prenajímam"': 'value="Vermieten"',
            "'Dopyt z webu — '": "'Anfrage über die Website — '", "'Čo riešim: '": "'Anliegen: '",
-           "'Meno: '": "'Name: '", "'Kontakt: '": "'Kontakt: '"},
+           "'Meno: '": "'Name: '", "'Kontakt: '": "'Kontakt: '", "'Ďakujem, správu som dostal.'": "'Vielen Dank, ich habe Ihre Nachricht erhalten.'", "'Ozvem sa vám najneskôr nasledujúci pracovný deň.'": "'Ich melde mich spätestens am nächsten Werktag.'"},
     'uk': {'value="Predávam"': 'value="Продаю"', 'value="Prenajímam"': 'value="Здаю в оренду"',
            "'Dopyt z webu — '": "'Запит з вебсайту — '", "'Čo riešim: '": "'Тема: '",
-           "'Meno: '": "'Ім\\'я: '", "'Kontakt: '": "'Контакт: '"},
+           "'Meno: '": "'Ім\\'я: '", "'Kontakt: '": "'Контакт: '", "'Ďakujem, správu som dostal.'": "'Дякую, ваше повідомлення отримано.'", "'Ozvem sa vám najneskôr nasledujúci pracovný deň.'": "'Я відповім вам не пізніше наступного робочого дня.'"},
 }
 
 
@@ -80,6 +80,8 @@ def preloz(page, lang):
     page = re.sub(r'<title>[^<]*</title>', '<title>' + html.escape(titul) + '</title>', page, count=1)
     for a, b in FORM[lang].items():
         page = page.replace(a, b)
+    # odkazy na ocenenie nehnuteľností v jazyku stránky (/en/ocenenie/ …)
+    page = page.replace('href="/ocenenie/"', 'href="' + dict((k, c) for k, c, _ in JAZYKY)[lang] + 'ocenenie/"')
     # ceny predaja v statických kartách: „429 000 €“
     if lang == 'en':
         page = re.sub(r'>(\d{1,3}(?: \d{3})+) €<', lambda m: '>€' + m.group(1).replace(' ', ',') + '<', page)

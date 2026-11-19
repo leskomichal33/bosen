@@ -1,4 +1,5 @@
-// Ocenenie nehnuteľností – skúšobná verzia na /ocenenie-test/
+// Ocenenie nehnuteľností – /ocenenie/ (SK), /en/ocenenie/, /de/ocenenie/, /ua/ocenenie/
+// Stará skúšobná adresa /ocenenie-test/ presmeruje na /ocenenie/.
 // Spája: porovnávaciu metódu nad inzerátmi z databázy BOREA (iba čítanie), štatistiku NBS,
 // mapové dáta (OpenStreetMap), AI zdôvodnenie a AI posúdenie fotiek (Workers AI),
 // korekciu ponukových cien na realizované (kalibrácia podľa reálnych predajov BOSEN),
@@ -6,9 +7,14 @@
 //
 // Databázu BOREA (bosen-reality-db) tento kód iba ČÍTA – žiadny zápis, skript BOREA sa nemení.
 
-import stranka from './ocenenie.html';
+import strankaSk from './ocenenie.html';
+import { PREKLADY, tr } from './ocenenie-preklady.js';
 
-const ZAKLAD = '/ocenenie-test';
+const ZAKLAD = '/ocenenie';
+const WEB = 'https://bosen.leskomichal33.workers.dev';
+// jazyk stránky → cesta webu (ukrajinčina má na webe /ua/)
+const JAZYKY = [['sk', '/', 'SK', 'Slovenčina'], ['en', '/en/', 'EN', 'English'], ['de', '/de/', 'DE', 'Deutsch'], ['uk', '/ua/', 'UA', 'Українська']];
+const NAZOV_JAZYKA = { sk: 'Slovak', en: 'English', de: 'German', uk: 'Ukrainian' };
 const UA = 'bosen-ocenenie/1.0 (+https://bosen.leskomichal33.workers.dev)';
 // Prístup k zoznamu záujemcov: kľúč pozná iba Michal, v kóde je len jeho SHA-256 odtlačok.
 const ADMIN_HASH = '4b35077be6a3c66f0b91e71298c9b5fa511083faf8866d91516c58d13dd1feeb';
@@ -36,14 +42,24 @@ const STAV = {
 };
 
 // ---------------------------------------------------------------------------------------------
+// Cesty: /ocenenie/…, /en/ocenenie/…, /de/ocenenie/…, /ua/ocenenie/… (a stará /ocenenie-test/…)
+export function jeOcenenie(pathname) {
+  return /^\/(?:(?:en|de|ua)\/)?ocenenie(?:-test)?(?:\/|$)/.test(pathname);
+}
+
 export async function ocenenieFetch(request, env, ctx, url) {
-  const cesta = url.pathname.slice(ZAKLAD.length) || '/';
+  const p = url.pathname.match(/^\/(?:(en|de|ua)\/)?ocenenie(-test)?(\/.*)?$/);
+  if (!p) return new Response('Nenájdené', { status: 404 });
+  const lang = { en: 'en', de: 'de', ua: 'uk' }[p[1]] || 'sk';
+  const cesta = p[3] || '';
+  if (!cesta) return Response.redirect(url.origin + url.pathname + '/', 301);
+  if (p[2] && (cesta === '/' || cesta === '/index.html')) return Response.redirect(url.origin + ZAKLAD + '/', 301);
   try {
     if (cesta === '/' || cesta === '/index.html') {
-      return new Response(stranka, { headers: { 'content-type': 'text/html; charset=utf-8', 'x-robots-tag': 'noindex', 'cache-control': 'no-store' } });
+      return new Response(stranka(lang), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=300' } });
     }
-    if (cesta === '/api/odhad' && request.method === 'POST') return json(await odhad(await request.json(), env));
-    if (cesta === '/api/presne' && request.method === 'POST') return json(await presne(await request.json(), env));
+    if (cesta === '/api/odhad' && request.method === 'POST') return json(await odhad(await request.json(), env, lang));
+    if (cesta === '/api/presne' && request.method === 'POST') return json(await presne(await request.json(), env, lang));
     if (cesta.startsWith('/sprava/')) return await sprava(cesta.slice(8), url, env);
     if (cesta === '/admin') return await admin(url, env);
     if (cesta === '/api/stav') return json(await stavDat(env));
@@ -51,8 +67,64 @@ export async function ocenenieFetch(request, env, ctx, url) {
     return new Response('Nenájdené', { status: 404 });
   } catch (e) {
     console.error('Ocenenie chyba', e);
-    return json({ chyba: 'Ocenenie sa nepodarilo. Skúste to znova alebo zavolajte +421 944 040 684.' }, 500);
+    return json({ chyba: tr(lang, 'Ocenenie sa nepodarilo. Skúste to znova alebo zavolajte +421 944 040 684.') }, 500);
   }
+}
+
+// Stránka v jazyku návštevníka: slovenská šablóna + preklady z ocenenie-preklady.js
+const strankyCache = {};
+function stranka(lang) {
+  if (strankyCache[lang]) return strankyCache[lang];
+  const domov = JAZYKY.find((j) => j[0] === lang)[1];
+  const cestaOcenenia = (c) => (c === '/' ? '' : c.slice(0, -1)) + ZAKLAD + '/';
+  let s = strankaSk;
+  const slovnik = PREKLADY[lang] || {};
+  if (lang !== 'sk') {
+    for (const sk of Object.keys(slovnik).sort((a, b) => b.length - a.length)) {
+      const ciel = slovnik[sk];
+      for (const [a, b] of [[sk, ciel], [escHtml(sk), escHtml(ciel)]]) {
+        s = s.replace(new RegExp('(>\\s*)' + regEsc(a) + '(\\s*<)', 'g'), (_, x, y) => x + b + y);
+        s = s.replace(new RegExp('((?:placeholder|alt|content)=")' + regEsc(a) + '"', 'g'), (_, x) => x + b + '"');
+      }
+    }
+    s = s.replace('<html lang="sk">', `<html lang="${lang}">`);
+    s = s.replace(/<title>[^<]*<\/title>/, `<title>${escHtml(tr(lang, 'Ocenenie nehnuteľnosti – Michal Leško, realitný maklér BOSEN'))}</title>`);
+  }
+  const alt = `<link rel="canonical" href="${WEB}${cestaOcenenia(domov)}">\n` +
+    JAZYKY.map(([k, c]) => `<link rel="alternate" hreflang="${k}" href="${WEB}${cestaOcenenia(c)}">`).join('\n') +
+    `\n<link rel="alternate" hreflang="x-default" href="${WEB}${ZAKLAD}/">`;
+  const prepinac = JAZYKY.map(([k, c, stitok, nazov]) => (k === lang ? `<b aria-current="page">${stitok}</b>` : `<a href="${cestaOcenenia(c)}" hreflang="${k}" lang="${k}" aria-label="${nazov}">${stitok}</a>`)).join('<span aria-hidden="true">|</span>');
+  s = s.replace('<!--ALT-->', alt).replace('<!--JAZYKY-->', prepinac).replaceAll('<!--DOMOV-->', domov)
+    .replace('/*T*/{}/*T*/', JSON.stringify(slovnik).replace(/</g, '\\u003c'));
+  return (strankyCache[lang] = s);
+}
+
+// Výsledok pre návštevníka v jeho jazyku (uložený záznam ostáva po slovensky)
+function prelozVysledok(r, lang) {
+  if (lang === 'sk' || !r) return r;
+  const o = { ...r };
+  for (const k of ['sprava', 'zdroj', 'istota', 'kraj', 'chyba']) if (o[k]) o[k] = tr(lang, o[k]);
+  if (o.upravy) o.upravy = o.upravy.map((u) => ({ ...u, t: trUprava(lang, u.t) }));
+  if (o.foto && o.foto.stavText) o.foto = { ...o.foto, stavText: tr(lang, o.foto.stavText) };
+  return o;
+}
+function trUprava(lang, t) {
+  const m = String(t).match(/^stav: (.+?)( \(podľa fotiek\))?$/);
+  if (m) return `${tr(lang, 'stav')}: ${tr(lang, m[1])}${m[2] ? ` (${tr(lang, 'podľa fotiek')})` : ''}`;
+  return tr(lang, t);
+}
+
+// Kontaktný formulár na hlavnej stránke (POST /api/kontakt) – uloží správu a pošle upozornenie
+export async function kontaktFetch(request, env) {
+  const x = await request.json().catch(() => ({}));
+  const lang = ['en', 'de', 'uk'].includes(x.jazyk) ? x.jazyk : 'sk';
+  if (x.web) return json({ ok: true });            // pasca na roboty (skryté pole)
+  const meno = str(x.meno, 80); const kontakt = str(x.kontakt, 120); const sprava = str(x.sprava, 3000); const typ = str(x.typ, 40);
+  if (!kontakt) return json({ chyba: tr(lang, 'Vyplňte telefón alebo e-mail.') }, 400);
+  const id = noveId();
+  await env.PONUKA.put(`lead:${id}`, JSON.stringify({ id, druh: 'Kontaktný formulár', cas: new Date().toISOString(), meno, kontakt, typ, sprava, jazyk: lang }), { expirationTtl: 60 * 60 * 24 * 365 });
+  await upozorni(env, `✉️ Správa z webu${typ ? ' – ' + typ : ''}${lang !== 'sk' ? ' 🌐 ' + lang.toUpperCase() : ''}\n👤 ${meno || '-'} · ${kontakt}\n\n${sprava || '(bez textu)'}`);
+  return json({ ok: true });
 }
 
 // Cron: postupné zisťovanie polohy lokalít z inzerátov (OpenStreetMap, max. 1 dopyt za sekundu)
@@ -73,31 +145,31 @@ export async function ocenenieCron(env) {
 
 // ---------------------------------------------------------------------------------------------
 // Automatický odhad cez AI
-async function odhad(vstup, env) {
+async function odhad(vstup, env, lang = 'sk') {
   const v = over(vstup);
-  if (v.chyba) return v;
-  if (!vstup.kontakt || !vstup.suhlas) return { chyba: 'Vyplňte telefón alebo e-mail a súhlas so spracovaním údajov.' };
+  if (v.chyba) return prelozVysledok(v, lang);
+  if (!vstup.kontakt || !vstup.suhlas) return { chyba: tr(lang, 'Vyplňte telefón alebo e-mail a súhlas so spracovaním údajov.') };
 
-  const vysledok = await vypocitaj(v, env, vstup.fotky);
+  const vysledok = await vypocitaj(v, env, vstup.fotky, lang);
   const id = noveId();
-  await env.PONUKA.put(`lead:${id}`, JSON.stringify({ id, druh: 'AI odhad', cas: new Date().toISOString(), meno: str(vstup.meno, 80), kontakt: str(vstup.kontakt, 120), vstup: v, vysledok: skratVysledok(vysledok) }), { expirationTtl: 60 * 60 * 24 * 365 });
-  await upozorni(env, `🧮 Nový AI odhad\n${popisNehnutelnosti(v)}\n💶 ${vysledok.odhad ? eur(vysledok.od) + ' – ' + eur(vysledok.do) : 'bez odhadu'}\n👤 ${str(vstup.meno, 80) || '-'} · ${str(vstup.kontakt, 120)}`);
-  return { id, ...vysledok };
+  await env.PONUKA.put(`lead:${id}`, JSON.stringify({ id, druh: 'AI odhad', cas: new Date().toISOString(), jazyk: lang, meno: str(vstup.meno, 80), kontakt: str(vstup.kontakt, 120), vstup: v, vysledok: skratVysledok(vysledok) }), { expirationTtl: 60 * 60 * 24 * 365 });
+  await upozorni(env, `🧮 Nový AI odhad${lang !== 'sk' ? ' 🌐 ' + lang.toUpperCase() : ''}\n${popisNehnutelnosti(v)}\n💶 ${vysledok.odhad ? eur(vysledok.od) + ' – ' + eur(vysledok.do) : 'bez odhadu'}\n👤 ${str(vstup.meno, 80) || '-'} · ${str(vstup.kontakt, 120)}`);
+  return { id, ...prelozVysledok(vysledok, lang) };
 }
 
 // Presné ocenenie: AI + maklér – uloží podklady, pripraví správu na obhliadku
-async function presne(vstup, env) {
+async function presne(vstup, env, lang = 'sk') {
   const v = over(vstup);
-  if (v.chyba) return v;
-  if (!vstup.kontakt || !vstup.suhlas) return { chyba: 'Vyplňte telefón alebo e-mail a súhlas so spracovaním údajov.' };
-  const vysledok = await vypocitaj(v, env, vstup.fotky);
+  if (v.chyba) return { ...prelozVysledok(v, lang), formular01: true };
+  if (!vstup.kontakt || !vstup.suhlas) return { chyba: tr(lang, 'Vyplňte telefón alebo e-mail a súhlas so spracovaním údajov.'), formular01: true };
+  const vysledok = await vypocitaj(v, env, vstup.fotky, lang);
   const id = noveId();
   const pripad = {
-    id, druh: 'Presné ocenenie', cas: new Date().toISOString(), meno: str(vstup.meno, 80), kontakt: str(vstup.kontakt, 120),
+    id, druh: 'Presné ocenenie', cas: new Date().toISOString(), jazyk: lang, meno: str(vstup.meno, 80), kontakt: str(vstup.kontakt, 120),
     kataster: str(vstup.kataster, 120), termin: str(vstup.termin, 200), poznamka: str(vstup.poznamka, 1000), vstup: v, vysledok,
   };
   await env.PONUKA.put(`lead:${id}`, JSON.stringify(pripad), { expirationTtl: 60 * 60 * 24 * 365 });
-  await upozorni(env, `📋 Žiadosť o presné ocenenie\n${popisNehnutelnosti(v)}\n👤 ${pripad.meno || '-'} · ${pripad.kontakt}\n🗓️ ${pripad.termin || '-'}`);
+  await upozorni(env, `📋 Žiadosť o presné ocenenie${lang !== 'sk' ? ' 🌐 ' + lang.toUpperCase() : ''}\n${popisNehnutelnosti(v)}\n👤 ${pripad.meno || '-'} · ${pripad.kontakt}\n🗓️ ${pripad.termin || '-'}`);
   return { id, ok: true };
 }
 
@@ -118,7 +190,7 @@ function over(x) {
   };
 }
 
-async function vypocitaj(v, env, fotky) {
+async function vypocitaj(v, env, fotky, lang = 'sk') {
   const [poloha, porovnania, geoIndex] = await Promise.all([
     geokoduj([v.ulica, v.obec].filter(Boolean).join(', ')).catch(() => null),
     nacitajPorovnania(v, env).catch((e) => { console.error('D1', e); return []; }),
@@ -126,7 +198,7 @@ async function vypocitaj(v, env, fotky) {
   ]);
   const [okolie, foto] = await Promise.all([
     poloha ? mapoveData(poloha).catch(() => null) : null,
-    posudFotky(env, fotky).catch((e) => { console.error('Fotky', e); return null; }),
+    posudFotky(env, fotky, lang).catch((e) => { console.error('Fotky', e); return null; }),
   ]);
 
   // AI posúdenie fotiek doplní stav, ak ho klient nezadal
@@ -167,7 +239,7 @@ async function vypocitaj(v, env, fotky) {
     korekcia: Math.round((KOREKCIA_REALIZACIA - 1) * 100),
     porovnania: vyber.zoznam.slice(0, 6), okolie, foto, stavZFotiek: !!v.stavZFotiek,
   };
-  vysledok.text = await aiText(env, v, vysledok).catch((e) => { console.error('AI text', e); return null; });
+  vysledok.text = await aiText(env, v, vysledok, lang).catch((e) => { console.error('AI text', e); return null; });
   return vysledok;
 }
 
@@ -381,7 +453,7 @@ async function mapoveData(p) {
 
 // ---------------------------------------------------------------------------------------------
 // Workers AI
-async function aiText(env, v, r) {
+async function aiText(env, v, r, lang = 'sk') {
   if (!env.AI) return null;
   const fakty = {
     nehnutelnost: popisNehnutelnosti(v), odhad: `${eur(r.od)} – ${eur(r.do)}`, cena_m2: `${r.m2} €/m²`,
@@ -389,7 +461,14 @@ async function aiText(env, v, r) {
     upravy: r.upravy.map((u) => `${u.t} ${u.p > 0 ? '+' : ''}${u.p} %`), korekcia_na_realizovane_ceny: `${r.korekcia} %`,
     okolie: r.okolie, fotky: r.foto && r.foto.poznamka,
   };
-  const spravy = [
+  const spravy = lang !== 'sk' ? [
+      { role: 'system', content: `You are Michal Leško, an experienced real estate agent at BOSEN Group, explaining an indicative price estimate to a property owner. ` +
+        `Write in natural, grammatically correct ${NAZOV_JAZYKA[lang]}, in the first person (e.g. "I compared"). ` +
+        'Write exactly 3 short sentences: 1) how many and which comparable properties the estimate is based on, 2) what increases or decreases the price (features of the property and the surroundings), 3) what a viewing will clarify. ' +
+        'Use ONLY the numbers and facts in the data provided and invent nothing. The data is in Slovak: translate it, but keep place names unchanged. ' +
+        'Do not repeat the whole price range and do not mention the adjustment to achieved prices. No greeting, signature or disclaimers. If a group of adjustments is missing, leave that part out.' },
+      { role: 'user', content: JSON.stringify(fakty) },
+  ] : [
       { role: 'system', content: 'Si skúsený realitný maklér Michal Leško (BOSEN Group) a vysvetľuješ majiteľovi orientačný odhad ceny. ' +
         'Píš gramaticky správnou, prirodzenou spisovnou slovenčinou v 1. osobe (napr. „porovnal som“), činným rodom, bez trpného rodu typu „cena je zvyšovaná“. ' +
         'Napíš presne 3 krátke vety: 1) z koľkých a akých porovnaní odhad vychádza, 2) čo cenu zvyšuje alebo znižuje (vlastnosti nehnuteľnosti a okolie), 3) čo upresní obhliadka. ' +
@@ -410,7 +489,7 @@ async function aiText(env, v, r) {
   return null;
 }
 
-async function posudFotky(env, fotky) {
+async function posudFotky(env, fotky, lang = 'sk') {
   if (!env.AI || !Array.isArray(fotky) || !fotky.length) return null;
   const model = '@cf/meta/llama-3.2-11b-vision-instruct';
   const vysledky = [];
@@ -420,7 +499,7 @@ async function posudFotky(env, fotky) {
     const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
     const vstup = {
       messages: [{ role: 'user', content: 'You are a real estate appraiser. Assess the condition of this interior or building photo. ' +
-        'Answer ONLY with JSON {"stav": one of "novostavba","kompletna","ciastocna","povodny","narekonstrukciu", "poznamka": "one short sentence in Slovak about the condition"}.' }],
+        'Answer ONLY with JSON {"stav": one of "novostavba","kompletna","ciastocna","povodny","narekonstrukciu", "poznamka": "one short sentence in ' + NAZOV_JAZYKA[lang] + ' about the condition"}.' }],
       image: Array.from(bytes), max_tokens: 160,
     };
     let res;
@@ -440,15 +519,30 @@ async function posudFotky(env, fotky) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Upozornenie Michalovi (Telegram) – zapne sa, keď Worker dostane TELEGRAM_TOKEN a TELEGRAM_CHAT
-async function upozorni(env, text) {
-  if (!env.TELEGRAM_TOKEN || !env.TELEGRAM_CHAT) return;
+// Upozornenie Michalovi (Telegram) – zapne sa, keď Worker dostane tajný kľúč TELEGRAM_TOKEN.
+// Chat sa zistí sám: stačí botovi raz napísať /start (alebo nastaviť TELEGRAM_CHAT).
+async function telegramChat(env) {
+  if (env.TELEGRAM_CHAT) return String(env.TELEGRAM_CHAT);
+  const ulozeny = await env.PONUKA.get('telegram_chat').catch(() => null);
+  if (ulozeny) return ulozeny;
+  const r = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_TOKEN}/getUpdates?limit=50`).then((x) => x.json()).catch(() => null);
+  const chat = r && r.ok && (r.result || []).map((u) => u.message && u.message.chat).filter((c) => c && c.type === 'private').pop();
+  if (!chat) return null;
+  await env.PONUKA.put('telegram_chat', String(chat.id));
+  return String(chat.id);
+}
+
+export async function upozorni(env, text) {
+  if (!env.TELEGRAM_TOKEN) return false;
   try {
-    await fetch(`https://api.telegram.org/bot${env.TELEGRAM_TOKEN}/sendMessage`, {
+    const chat = await telegramChat(env);
+    if (!chat) return false;
+    const res = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_TOKEN}/sendMessage`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT, text, disable_web_page_preview: true }),
+      body: JSON.stringify({ chat_id: chat, text: text.slice(0, 4000), disable_web_page_preview: true }),
     });
-  } catch (e) { console.error('Telegram', e); }
+    return res.ok;
+  } catch (e) { console.error('Telegram', e); return false; }
 }
 
 async function jeAdmin(url) {
@@ -460,18 +554,21 @@ async function jeAdmin(url) {
 
 async function admin(url, env) {
   if (!(await jeAdmin(url))) return new Response('Prístup zamietnutý', { status: 403 });
+  let tg = !env.TELEGRAM_TOKEN ? 'vypnuté – v Cloudflare chýba tajný kľúč TELEGRAM_TOKEN'
+    : (await telegramChat(env)) ? 'zapnuté' : 'kľúč je nastavený, ale bot ešte nepozná váš chat – napíšte mu v Telegrame /start a obnovte stránku';
+  if (url.searchParams.get('telegram') === 'test' && env.TELEGRAM_TOKEN) tg += (await upozorni(env, '✅ Test: upozornenia z webu fungujú.')) ? ' · testovacia správa odoslaná' : ' · testovaciu správu sa nepodarilo odoslať';
   const { keys } = await env.PONUKA.list({ prefix: 'lead:' });
   const zaznamy = (await Promise.all(keys.map((k) => env.PONUKA.get(k.name, 'json')))).filter(Boolean).sort((a, b) => b.cas.localeCompare(a.cas));
   const k = encodeURIComponent(url.searchParams.get('k'));
-  const riadky = zaznamy.map((z) => `<tr><td>${esc(new Date(z.cas).toLocaleString('sk-SK', { timeZone: 'Europe/Bratislava' }))}</td><td>${esc(z.druh)}</td><td>${esc(z.meno || '')}<br>${esc(z.kontakt)}</td><td>${esc(popisNehnutelnosti(z.vstup))}</td><td>${z.vysledok && z.vysledok.odhad ? esc(eur(z.vysledok.od) + ' – ' + eur(z.vysledok.do)) : '–'}</td><td><a href="${ZAKLAD}/sprava/${z.id}?k=${k}">Správa →</a></td></tr>`).join('');
-  return html(`<h1>Záujemcovia o ocenenie</h1><p>${zaznamy.length} záznamov</p><table><tr><th>Čas</th><th>Druh</th><th>Kontakt</th><th>Nehnuteľnosť</th><th>Odhad</th><th></th></tr>${riadky}</table>`);
+  const riadky = zaznamy.map((z) => `<tr><td>${esc(new Date(z.cas).toLocaleString('sk-SK', { timeZone: 'Europe/Bratislava' }))}</td><td>${esc(z.druh)}</td><td>${esc(z.meno || '')}<br>${esc(z.kontakt)}</td><td>${z.vstup ? esc(popisNehnutelnosti(z.vstup)) : esc((z.typ ? z.typ + ': ' : '') + (z.sprava || '')).replace(/\n/g, '<br>')}</td><td>${z.vysledok && z.vysledok.odhad ? esc(eur(z.vysledok.od) + ' – ' + eur(z.vysledok.do)) : '–'}</td><td>${z.vstup ? `<a href="${ZAKLAD}/sprava/${z.id}?k=${k}">Správa →</a>` : ''}</td></tr>`).join('');
+  return html(`<h1>Záujemcovia z webu</h1><p>${zaznamy.length} záznamov · Telegram: ${esc(tg)} · <a href="?k=${k}&telegram=test">poslať testovaciu správu</a></p><table><tr><th>Čas</th><th>Druh</th><th>Kontakt</th><th>Nehnuteľnosť</th><th>Odhad</th><th></th></tr>${riadky}</table>`);
 }
 
 // Tlačová správa (PDF cez „Tlačiť → Uložiť ako PDF“) – podklad na písomné ocenenie
 async function sprava(id, url, env) {
   if (!(await jeAdmin(url))) return new Response('Prístup zamietnutý', { status: 403 });
   const z = await env.PONUKA.get(`lead:${id.replace(/[^\w-]/g, '')}`, 'json');
-  if (!z) return new Response('Nenájdené', { status: 404 });
+  if (!z || !z.vstup) return new Response('Nenájdené', { status: 404 });
   const r = z.vysledok || {};
   const por = (r.porovnania || []).map((c) => `<tr><td>${esc(c.lokalita)}</td><td>${esc(c.typ || '')}</td><td>${c.vymera} m²</td><td>${eur(c.cena)}</td><td>${c.m2} €/m²</td><td>${c.km != null ? c.km + ' km' : ''}</td><td><a href="${esc(c.url)}">${esc(c.portal)}</a></td></tr>`).join('');
   const ok = r.okolie ? `Obchody do 1 km: ${r.okolie.obchody}; zastávka: ${m(r.okolie.zastavka)}; škola: ${m(r.okolie.skola)}; škôlka: ${m(r.okolie.skolka)}; park: ${m(r.okolie.park)}` : 'nezistené';
@@ -528,6 +625,8 @@ function m(x) { return x == null ? 'nezistené' : x >= 1000 ? (x / 1000).toFixed
 function num(x) { const n = Number(String(x ?? '').replace(',', '.').replace(/[^\d.]/g, '')); return Number.isFinite(n) && n > 0 ? n : null; }
 function str(x, max) { return String(x ?? '').trim().slice(0, max); }
 function noveId() { return new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + crypto.randomUUID().slice(0, 8); }
+function regEsc(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function json(o, status = 200) { return new Response(JSON.stringify(o), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } }); }
 function html(body) {

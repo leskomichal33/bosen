@@ -5,7 +5,7 @@ import page from './index.html';
 import pageEn from './index_en.html';
 import pageDe from './index_de.html';
 import pageUk from './index_uk.html';
-import { ocenenieFetch, ocenenieCron } from './ocenenie.js';
+import { ocenenieFetch, ocenenieCron, jeOcenenie, kontaktFetch } from './ocenenie.js';
 import imgHero from './img/hero.jpg';
 import imgPortret from './img/portret.jpg';
 import imgPortretMichal from './img/portret-michal.jpg';
@@ -68,9 +68,10 @@ const OBRAZKY = {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    // Skúšobná verzia ocenenia nehnuteľností (neprepojená s webom)
-    if (url.pathname === '/ocenenie-test') return Response.redirect(url.origin + '/ocenenie-test/', 301);
-    if (url.pathname.startsWith('/ocenenie-test/')) return ocenenieFetch(request, env, ctx, url);
+    // Ocenenie nehnuteľností: /ocenenie/, /en/ocenenie/, /de/ocenenie/, /ua/ocenenie/ (stará /ocenenie-test/ presmeruje)
+    if (jeOcenenie(url.pathname)) return ocenenieFetch(request, env, ctx, url);
+    // Kontaktný formulár z hlavnej stránky
+    if (url.pathname === '/api/kontakt' && request.method === 'POST') return kontaktFetch(request, env);
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       return new Response('Method not allowed', { status: 405 });
     }

@@ -141,6 +141,8 @@ body = body.replace('<div style="position: relative; max-width: 1360px; margin: 
 form_old = '<form style="'
 assert body.count(form_old) == 1
 body = body.replace(form_old, '<form id="kontakt-form" onsubmit="sendForm(event)" style="')
+# pasca na roboty (skryté pole „web“) – formulár sa odosiela cez /api/kontakt
+body = body.replace('padding: 36px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px">', 'padding: 36px; position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px">\n      <input type=\"text\" name=\"web\" tabindex=\"-1\" autocomplete=\"off\" aria-hidden=\"true\" style=\"position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0\">', 1)
 body = body.replace('<input type="radio" name="typ" checked', '<input type="radio" name="typ" value="Predávam" checked')
 body = body.replace('<input type="radio" name="typ" style', '<input type="radio" name="typ" value="Prenajímam" style')
 body = body.replace('Vaše meno<input type="text"', 'Vaše meno<input type="text" name="meno" autocomplete="name" required')
@@ -171,10 +173,15 @@ img{max-width:100%}
 helmet = helmet.replace('</style>', extra_css + '</style>')
 
 script = '''<script>
-function sendForm(e){e.preventDefault();var f=e.target,d=new FormData(f),typ=d.get('typ')||'';
-var subject=encodeURIComponent('Dopyt z webu — '+typ);
+function sendForm(e){e.preventDefault();var f=e.target,d=new FormData(f),typ=d.get('typ')||'',b=f.querySelector('button[type=submit]');
+var mail=function(){var subject=encodeURIComponent('Dopyt z webu — '+typ);
 var body=encodeURIComponent(['Čo riešim: '+typ,'Meno: '+(d.get('meno')||''),'Kontakt: '+(d.get('kontakt')||''),'',(d.get('sprava')||'')].join(String.fromCharCode(10)));
-window.location.href='mailto:lesko@bosen.sk?subject='+subject+'&body='+body;}
+window.location.href='mailto:lesko@bosen.sk?subject='+subject+'&body='+body;};
+if(b)b.disabled=true;
+fetch('/api/kontakt',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({typ:typ,meno:d.get('meno')||'',kontakt:d.get('kontakt')||'',sprava:d.get('sprava')||'',web:d.get('web')||'',jazyk:document.documentElement.lang})})
+.then(function(r){return r.json()}).then(function(r){if(!r.ok)throw 0;
+f.innerHTML='<div role="status" style="grid-column:1/-1;display:flex;flex-direction:column;gap:10px"><strong style="font-size:22px;letter-spacing:-0.02em">'+'Ďakujem, správu som dostal.'+'</strong><span style="font-size:15px;line-height:1.6;color:#5b5751">'+'Ozvem sa vám najneskôr nasledujúci pracovný deň.'+'</span></div>';})
+.catch(function(){if(b)b.disabled=false;mail();});}
 </script>'''
 
 page = f'''<!doctype html>

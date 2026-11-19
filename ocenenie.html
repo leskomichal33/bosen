@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex">
 <title>Ocenenie nehnuteľnosti – Michal Leško, realitný maklér BOSEN</title>
+<meta name="description" content="Zistite orientačnú cenu bytu, domu alebo pozemku online za dve minúty, alebo si objednajte presné ocenenie s obhliadkou od makléra BOSEN Group. Zdarma a nezáväzne.">
+<!--ALT-->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -12,9 +13,12 @@
 a{color:inherit}
 .mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase}
 .serif{font-family:Newsreader,Georgia,serif;font-style:italic;font-weight:400;letter-spacing:-.03em}
-.test{background:#141312;color:#d7b56d;text-align:center;padding:10px;font-size:12px}
-.test a{color:#f7f5f0}
-header{max-width:1360px;margin:0 auto;padding:22px 32px;display:flex;align-items:center;gap:14px}
+header{max-width:1360px;margin:0 auto;padding:22px 32px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 28px}
+header .home{display:flex;align-items:center;gap:14px;text-decoration:none;margin-right:auto}
+header .spat{font-size:14px;font-weight:700;text-decoration:none;border-bottom:1px solid #141312;padding-bottom:2px}
+header .spat span{display:inline;font:inherit;letter-spacing:0;text-transform:none;color:inherit}
+header .jaz{display:inline-flex;gap:8px;font-size:13px;font-weight:700;letter-spacing:.1em}header .jaz a{text-decoration:none;opacity:.6}header .jaz b{color:#7a5c1f;border-bottom:1px solid #7a5c1f}
+.suhlas a{color:inherit;font-weight:700}
 header img{height:38px}header strong{font-size:15px}header span{display:block;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.12em;color:#5b5751;text-transform:uppercase}
 section{padding:40px 0 100px}.wrap{max-width:1360px;margin:0 auto;padding:0 32px}
 .head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px 48px}
@@ -87,8 +91,7 @@ textarea{height:84px;padding:12px 14px;resize:vertical}
 </style>
 </head>
 <body>
-<div class="test">Skúšobná verzia – nie je prepojená s webom · <a href="/">späť na web</a></div>
-<header><img src="/img/podpis-tmavy.png" alt=""><div><strong>Michal Leško</strong><span>Realitný maklér · BOSEN Group</span></div></header>
+<header><a class="home" href="<!--DOMOV-->"><img src="/img/podpis-tmavy.png" alt=""><div><strong>Michal Leško</strong><span>Realitný maklér · BOSEN Group</span></div></a><span class="jaz"><!--JAZYKY--></span><a class="spat" href="<!--DOMOV-->"><span aria-hidden="true">←</span> Späť na web</a></header>
 
 <section><div class="wrap">
   <div class="head">
@@ -124,7 +127,7 @@ textarea{height:84px;padding:12px 14px;resize:vertical}
         <div class="f full t-nie-pozemok"><label class="l" for="fotky">Fotky <small style="text-transform:none;font-weight:500">(nepovinné, max. 3 – AI posúdi stav)</small></label><input type="file" id="fotky" accept="image/*" multiple style="font-size:14px"></div>
         <div class="f"><label class="l" for="meno">Meno</label><input type="text" id="meno" name="meno" autocomplete="name"></div>
         <div class="f"><label class="l" for="kontakt">Telefón alebo e-mail</label><input type="text" id="kontakt" name="kontakt" placeholder="Pošlem vám výsledok" autocomplete="tel"></div>
-        <label class="suhlas full f" style="flex-direction:row"><input type="checkbox" name="suhlas"> Súhlasím so spracovaním údajov na účel ocenenia a kontaktovania maklérom BOSEN Group.</label>
+        <label class="suhlas full f" style="flex-direction:row"><input type="checkbox" name="suhlas"><span><span>Súhlasím so spracovaním údajov na účel ocenenia a kontaktovania maklérom BOSEN Group.</span> <a href="https://www.bosen.sk/ochrana-osobnych-udajov" target="_blank" rel="noopener">Ochrana osobných údajov ↗</a></span></label>
         <div class="f full"><button class="btn" type="submit" id="b1">Zistiť orientačnú cenu →</button><span class="chyba" id="e1"></span></div>
       </form>
       <div class="res hide" id="vysledok" aria-live="polite"></div>
@@ -170,6 +173,8 @@ textarea{height:84px;padding:12px 14px;resize:vertical}
 </div></section>
 
 <script>
+const T = /*T*/{}/*T*/;
+const t = (s, o = {}) => Object.entries(o).reduce((a, [k, v]) => a.replace('{' + k + '}', v), T[s] || s);
 const $ = (s, r = document) => r.querySelector(s);
 const f = $('#f'), g = $('#g');
 const eur = (x) => Math.round(x).toLocaleString('sk-SK').replace(/ |,/g, ' ') + ' €';
@@ -177,11 +182,11 @@ const m = (x) => x == null ? '–' : x >= 1000 ? (x / 1000).toFixed(1).replace('
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function prepniTyp() {
-  const t = f.typ.value;
-  document.querySelectorAll('.t-byt').forEach((e) => e.classList.toggle('hide', t !== 'byt'));
-  document.querySelectorAll('.t-dom').forEach((e) => e.classList.toggle('hide', t !== 'dom'));
-  document.querySelectorAll('.t-nie-pozemok').forEach((e) => e.classList.toggle('hide', t === 'pozemok'));
-  $('#lv').textContent = t === 'pozemok' ? 'Výmera pozemku m²' : 'Úžitková plocha m²';
+  const typ = f.typ.value;
+  document.querySelectorAll('.t-byt').forEach((e) => e.classList.toggle('hide', typ !== 'byt'));
+  document.querySelectorAll('.t-dom').forEach((e) => e.classList.toggle('hide', typ !== 'dom'));
+  document.querySelectorAll('.t-nie-pozemok').forEach((e) => e.classList.toggle('hide', typ === 'pozemok'));
+  $('#lv').textContent = typ === 'pozemok' ? t('Výmera pozemku m²') : t('Úžitková plocha m²');
 }
 f.addEventListener('change', (e) => { if (e.target.name === 'typ') prepniTyp(); });
 prepniTyp();
@@ -209,51 +214,51 @@ function udaje() {
 
 f.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const b = $('#b1'); $('#e1').textContent = ''; b.disabled = true; b.textContent = 'Počítam odhad…';
+  const b = $('#b1'); $('#e1').textContent = ''; b.disabled = true; b.textContent = t('Počítam odhad…');
   try {
     const d = udaje(); d.fotky = await zmensiFotky();
     const r = await fetch('api/odhad', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(d) }).then((x) => x.json());
     if (r.chyba) { $('#e1').textContent = r.chyba; return; }
     ukaz(r);
-  } catch (err) { $('#e1').textContent = 'Odhad sa nepodaril. Skúste to znova.'; }
-  finally { b.disabled = false; b.textContent = 'Zistiť orientačnú cenu →'; }
+  } catch (err) { $('#e1').textContent = t('Odhad sa nepodaril. Skúste to znova.'); }
+  finally { b.disabled = false; b.textContent = t('Zistiť orientačnú cenu →'); }
 });
 
 function ukaz(r) {
   const v = $('#vysledok'); v.classList.remove('hide');
-  if (!r.odhad) { v.innerHTML = `<span class="mono lab">Výsledok</span><p>${esc(r.sprava)}</p><a class="btn" href="#presne">Objednať presné ocenenie →</a>`; return; }
+  if (!r.odhad) { v.innerHTML = `<span class="mono lab">${t('Výsledok')}</span><p>${esc(r.sprava)}</p><a class="btn" href="#presne">${t('Objednať presné ocenenie →')}</a>`; return; }
   const pozicia = r.do > r.od ? Math.round((r.stred - r.od) / (r.do - r.od) * 50 + 25) : 50;
-  const okolie = r.okolie ? `<h4>Okolie</h4><ul>
-      <li>Obchody do 1 km: ${r.okolie.obchody}</li><li>Najbližšia zastávka: ${m(r.okolie.zastavka)}</li>
-      <li>Škola: ${m(r.okolie.skola)} · škôlka: ${m(r.okolie.skolka)}</li><li>Park: ${m(r.okolie.park)}</li></ul>` : '';
-  const upr = (r.upravy || []).length ? `<h4>Čo cenu ovplyvnilo</h4><ul>${r.upravy.map((u) => `<li>${esc(u.t)}: ${u.p > 0 ? '+' : ''}${u.p} %</li>`).join('')}<li>korekcia z ponukových na realizované ceny: ${r.korekcia} %</li></ul>` : '';
-  const foto = r.foto && r.foto.stavText ? `<h4>AI posúdenie fotiek</h4><p>${esc(r.foto.stavText)}${r.foto.poznamka ? ' – ' + esc(r.foto.poznamka) : ''}</p>` : '';
-  const por = (r.porovnania || []).length ? `<h4>Porovnateľné ponuky</h4><table>${r.porovnania.map((c) => `<tr><td>${esc(c.lokalita)}${c.km != null ? ' · ' + c.km + ' km' : ''}</td><td>${c.vymera} m²</td><td>${eur(c.cena)}</td><td><b>${c.m2} €/m²</b></td><td><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.portal)} ↗</a></td></tr>`).join('')}</table>` : '';
+  const okolie = r.okolie ? `<h4>${t('Okolie')}</h4><ul>
+      <li>${t('Obchody do 1 km')}: ${r.okolie.obchody}</li><li>${t('Najbližšia zastávka')}: ${m(r.okolie.zastavka)}</li>
+      <li>${t('Škola')}: ${m(r.okolie.skola)} · ${t('škôlka')}: ${m(r.okolie.skolka)}</li><li>${t('Park')}: ${m(r.okolie.park)}</li></ul>` : '';
+  const upr = (r.upravy || []).length ? `<h4>${t('Čo cenu ovplyvnilo')}</h4><ul>${r.upravy.map((u) => `<li>${esc(u.t)}: ${u.p > 0 ? '+' : ''}${u.p} %</li>`).join('')}<li>${t('korekcia z ponukových na realizované ceny')}: ${r.korekcia} %</li></ul>` : '';
+  const foto = r.foto && r.foto.stavText ? `<h4>${t('AI posúdenie fotiek')}</h4><p>${esc(r.foto.stavText)}${r.foto.poznamka ? ' – ' + esc(r.foto.poznamka) : ''}</p>` : '';
+  const por = (r.porovnania || []).length ? `<h4>${t('Porovnateľné ponuky')}</h4><table>${r.porovnania.map((c) => `<tr><td>${esc(c.lokalita)}${c.km != null ? ' · ' + c.km + ' km' : ''}</td><td>${c.vymera} m²</td><td>${eur(c.cena)}</td><td><b>${c.m2} €/m²</b></td><td><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.portal)} ↗</a></td></tr>`).join('')}</table>` : '';
   v.innerHTML = `
-    <span class="mono lab">Orientačná cena</span>
+    <span class="mono lab">${t('Orientačná cena')}</span>
     <span class="price">${eur(r.od)} – ${eur(r.do)}</span>
     <div class="bar"><i></i><b style="left:${pozicia}%"></b></div>
-    <div class="row"><span>≈ ${r.m2.toLocaleString('sk-SK').replace(/ /g, ' ')} €/m²</span><span>${r.pocet ? `${r.pocet} porovnaní${r.polomer ? ' do ' + r.polomer + ' km' : ''}` : ''}</span><span class="pill">Istota: ${esc(r.istota)}</span></div>
+    <div class="row"><span>≈ ${r.m2.toLocaleString('sk-SK').replace(/ /g, ' ')} €/m²</span><span>${r.pocet ? t('{n} porovnaní', { n: r.pocet }) + (r.polomer ? ' ' + t('do {km} km', { km: r.polomer }) : '') : ''}</span><span class="pill">${t('Istota')}: ${esc(r.istota)}</span></div>
     ${r.text ? `<p>${esc(r.text)}</p>` : ''}
-    ${r.nbsM2 ? `<div class="row"><span>NBS – ${esc(r.kraj)}: ${r.nbsM2.toLocaleString('sk-SK').replace(/ /g, ' ')} €/m² (priemer kraja)</span></div>` : ''}
+    ${r.nbsM2 ? `<div class="row"><span>NBS – ${esc(r.kraj)}: ${r.nbsM2.toLocaleString('sk-SK').replace(/ /g, ' ')} €/m² (${t('priemer kraja')})</span></div>` : ''}
     ${upr}${foto}${okolie}${por}
-    <small>Orientačný odhad z ponukových cien a verejných dát, nie znalecký posudok. Presnú cenu určíme po obhliadke – zdarma a nezáväzne.</small>
-    <a class="btn" href="#presne">Chcem presné ocenenie →</a>`;
+    <small>${t('Orientačný odhad z ponukových cien a verejných dát, nie znalecký posudok. Presnú cenu určíme po obhliadke – zdarma a nezáväzne.')}</small>
+    <a class="btn" href="#presne">${t('Chcem presné ocenenie →')}</a>`;
   v.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 g.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const b = $('#b2'); $('#e2').textContent = ''; b.disabled = true; b.textContent = 'Odosielam…';
+  const b = $('#b2'); $('#e2').textContent = ''; b.disabled = true; b.textContent = t('Odosielam…');
   try {
     const d = { ...udaje(), ...Object.fromEntries(new FormData(g)) }; d.fotky = await zmensiFotky();
     const r = await fetch('api/presne', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(d) }).then((x) => x.json());
-    if (r.chyba) { $('#e2').textContent = r.chyba + (/obec|výmer|typ/i.test(r.chyba) ? ' (formulár 01)' : ''); return; }
+    if (r.chyba) { $('#e2').textContent = r.chyba + (r.formular01 ? ' ' + t('(formulár 01)') : ''); return; }
     g.classList.add('hide');
     $('#ok2').classList.remove('hide');
-    $('#ok2').innerHTML = '<b>Ďakujem, žiadosť som prijal.</b><br>Ozvem sa vám najneskôr nasledujúci pracovný deň a dohodneme si obhliadku. Michal Leško, +421 944 040 684';
-  } catch (err) { $('#e2').textContent = 'Odoslanie sa nepodarilo. Zavolajte mi na +421 944 040 684.'; }
-  finally { b.disabled = false; b.textContent = 'Objednať presné ocenenie →'; }
+    $('#ok2').innerHTML = '<b>' + t('Ďakujem, žiadosť som prijal.') + '</b><br>' + t('Ozvem sa vám najneskôr nasledujúci pracovný deň a dohodneme si obhliadku.') + ' Michal Leško, +421 944 040 684';
+  } catch (err) { $('#e2').textContent = t('Odoslanie sa nepodarilo. Zavolajte mi na +421 944 040 684.'); }
+  finally { b.disabled = false; b.textContent = t('Objednať presné ocenenie →'); }
 });
 </script>
 </body>
