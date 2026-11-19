@@ -466,6 +466,7 @@ async function aiText(env, v, r, lang = 'sk') {
         `Write in natural, grammatically correct ${NAZOV_JAZYKA[lang]}, in the first person (e.g. "I compared"). ` +
         'Write exactly 3 short sentences: 1) how many and which comparable properties the estimate is based on, 2) what increases or decreases the price (features of the property and the surroundings), 3) what a viewing will clarify. ' +
         'Use ONLY the numbers and facts in the data provided and invent nothing. The data is in Slovak: translate it, but keep place names unchanged. ' +
+        'Note: a Slovak "2-izbový byt" means a flat with 2 rooms in total (living room included), so say "2-room flat", never "2-bedroom". ' +
         'Do not repeat the whole price range and do not mention the adjustment to achieved prices. No greeting, signature or disclaimers. If a group of adjustments is missing, leave that part out.' },
       { role: 'user', content: JSON.stringify(fakty) },
   ] : [
