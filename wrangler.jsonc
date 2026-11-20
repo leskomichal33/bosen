@@ -5,9 +5,9 @@
   "compatibility_date": "2025-09-01",
   // index.html sa načíta ako text a Worker do neho doplní aktuálnu ponuku z bosen.sk
   "rules": [
-    { "type": "Text", "globs": ["**/*.html"], "fallthrough": true },
-    // Fotky a certifikát sa servírujú priamo z Workera (/img/…)
-    { "type": "Data", "globs": ["**/*.jpg", "**/*.png"], "fallthrough": true }
+    { "type": "Text", "globs": ["**/*.html", "**/*.css"], "fallthrough": true },
+    // Fotky, certifikát a písma sa servírujú priamo z Workera (/img/…, /fonts/…)
+    { "type": "Data", "globs": ["**/*.jpg", "**/*.png", "**/*.woff2"], "fallthrough": true }
   ],
   // Uložená ponuka z bosen.sk (obnovuje sa raz denne)
   // Workers AI – automatický preklad názvov nových inzerátov do angličtiny a nemčiny

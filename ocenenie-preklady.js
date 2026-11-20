@@ -22,7 +22,7 @@ const R = [
   ['Dom', 'House', 'Haus', 'Будинок'],
   ['Pozemok', 'Plot', 'Grundstück', 'Ділянка'],
   ['Obec / mestská časť', 'Town / city district', 'Gemeinde / Stadtteil', 'Населений пункт / район міста'],
-  ['napr. Malacky, Bratislava-Ružinov', 'e.g. Malacky, Bratislava-Ružinov', 'z. B. Malacky, Bratislava-Ružinov', 'напр. Malacky, Bratislava-Ružinov'],
+  ['napr. Bratislava-Ružinov, Stupava', 'e.g. Bratislava-Ružinov, Stupava', 'z. B. Bratislava-Ružinov, Stupava', 'напр. Bratislava-Ružinov, Stupava'],
   ['Ulica', 'Street', 'Straße', 'Вулиця'],
   ['(nepovinné)', '(optional)', '(optional)', '(необов’язково)'],
   ['presnejší odhad okolia', 'for a more accurate view of the area', 'für eine genauere Umgebungsanalyse', 'для точнішої оцінки району'],

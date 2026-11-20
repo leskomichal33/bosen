@@ -28,6 +28,14 @@ import img_krok_6_jpg from './img/krok-6.jpg';
 import img_krok_7_jpg from './img/krok-7.jpg';
 import img_krok_8_jpg from './img/krok-8.jpg';
 import img_krok_9_jpg from './img/krok-9.jpg';
+import imgAvatar from './img/avatar-michal.jpg';
+import imgOg from './img/og.jpg';
+import { PISMA } from './pisma.js';
+import stranaCookies from './cookies.html';
+import stranaCookiesEn from './cookies_en.html';
+import stranaCookiesDe from './cookies_de.html';
+import stranaCookiesUk from './cookies_uk.html';
+import stranaBratislava from './predaj-bratislava.html';
 
 const PROFIL = 'https://www.bosen.sk/makler/119-michal-lesko';
 const BOSEN = 'https://www.bosen.sk';
@@ -38,6 +46,23 @@ const VERZIA_DAT = 6;
 // Preklady názvov uložené od tejto verzie sú platné a znova sa neprekladajú
 const PREKLADY_OD_VERZIE = 5;
 const STRANKY = { sk: page, en: pageEn, de: pageDe, uk: pageUk };
+const WEB = 'https://bosen.leskomichal33.workers.dev';
+// Podstránky (statické HTML)
+const PODSTRANKY = {
+  '/cookies/': stranaCookies,
+  '/en/cookies/': stranaCookiesEn,
+  '/de/cookies/': stranaCookiesDe,
+  '/ua/cookies/': stranaCookiesUk,
+  '/predaj-nehnutelnosti-bratislava/': stranaBratislava,
+};
+// Mapa stránok pre Google
+const SITEMAP_CESTY = ['/', '/en/', '/de/', '/ua/', '/ocenenie/', '/en/ocenenie/', '/de/ocenenie/', '/ua/ocenenie/',
+  '/predaj-nehnutelnosti-bratislava/', '/cookies/', '/en/cookies/', '/de/cookies/', '/ua/cookies/'];
+function sitemap() {
+  const dnes = new Date().toISOString().slice(0, 10);
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    SITEMAP_CESTY.map((p) => `  <url><loc>${WEB}${p}</loc><lastmod>${dnes}</lastmod></url>`).join('\n') + '\n</urlset>\n';
+}
 
 // Obrázky webu (fotky a certifikát), servírované priamo z Workera
 const OBRAZKY = {
@@ -63,6 +88,8 @@ const OBRAZKY = {
   '/img/krok-7.jpg': img_krok_7_jpg,
   '/img/krok-8.jpg': img_krok_8_jpg,
   '/img/krok-9.jpg': img_krok_9_jpg,
+  '/img/avatar-michal.jpg': imgAvatar,
+  '/img/og.jpg': imgOg,
 };
 
 export default {
@@ -74,6 +101,21 @@ export default {
     if (url.pathname === '/api/kontakt' && request.method === 'POST') return kontaktFetch(request, env);
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       return new Response('Method not allowed', { status: 405 });
+    }
+    if (PISMA[url.pathname]) {
+      const [obsah, typ] = PISMA[url.pathname];
+      return new Response(obsah, { headers: { 'content-type': typ, 'cache-control': 'public, max-age=31536000, immutable', 'access-control-allow-origin': '*' } });
+    }
+    if (url.pathname === '/sitemap.xml') {
+      return new Response(sitemap(), { headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600' } });
+    }
+    if (url.pathname === '/robots.txt') {
+      return new Response(`User-agent: *\nAllow: /\nDisallow: /ocenenie/admin\nDisallow: /api/\n\nSitemap: ${WEB}/sitemap.xml\n`, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
+    }
+    const cestaPodstranky = url.pathname.endsWith('/') ? url.pathname : url.pathname + '/';
+    if (PODSTRANKY[cestaPodstranky]) {
+      if (cestaPodstranky !== url.pathname) return Response.redirect(url.origin + cestaPodstranky, 301);
+      return new Response(PODSTRANKY[url.pathname], { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=300' } });
     }
     if (OBRAZKY[url.pathname]) {
       return new Response(OBRAZKY[url.pathname], {

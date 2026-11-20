@@ -6,8 +6,7 @@
 <title>Ocenenie nehnuteľnosti – Michal Leško, realitný maklér BOSEN</title>
 <meta name="description" content="Zistite orientačnú cenu bytu, domu alebo pozemku online za dve minúty, alebo si objednajte presné ocenenie s obhliadkou od makléra BOSEN Group. Zdarma a nezáväzne.">
 <!--ALT-->
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="preload" href="/fonts/manrope-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/fonts/fonts.css">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#efece5;color:#141312;font-family:Manrope,system-ui,sans-serif}
 a{color:inherit}
@@ -111,7 +110,7 @@ textarea{height:84px;padding:12px 14px;resize:vertical}
       <form id="f" novalidate>
         <div class="f full"><span>Typ nehnuteľnosti</span>
           <div class="seg"><label><input type="radio" name="typ" value="byt" checked>Byt</label><label><input type="radio" name="typ" value="dom">Dom</label><label><input type="radio" name="typ" value="pozemok">Pozemok</label></div></div>
-        <div class="f"><label class="l" for="obec">Obec / mestská časť</label><input type="text" id="obec" name="obec" placeholder="napr. Malacky, Bratislava-Ružinov" autocomplete="address-level2"></div>
+        <div class="f"><label class="l" for="obec">Obec / mestská časť</label><input type="text" id="obec" name="obec" placeholder="napr. Bratislava-Ružinov, Stupava" autocomplete="address-level2"></div>
         <div class="f"><label class="l" for="ulica">Ulica <small style="text-transform:none;font-weight:500">(nepovinné)</small></label><input type="text" id="ulica" name="ulica" placeholder="presnejší odhad okolia" autocomplete="address-line1"></div>
         <div class="f"><label class="l" for="vymera" id="lv">Úžitková plocha m²</label><input type="number" id="vymera" name="vymera" inputmode="decimal" min="10"></div>
         <div class="f t-byt"><label class="l" for="izby">Počet izieb</label><select id="izby" name="izby"><option value="">–</option><option value="1">1 / garsónka</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5 a viac</option></select></div>
